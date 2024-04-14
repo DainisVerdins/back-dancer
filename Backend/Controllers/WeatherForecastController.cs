@@ -1,33 +1,27 @@
+using Backend.CORS.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Backend.Controllers
+namespace Backend.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class WeatherForecastController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    private readonly ILogger<WeatherForecastController> _logger;
+
+    private readonly IMediator _mediator;
+    public WeatherForecastController(ILogger<WeatherForecastController> logger, IMediator mediator)
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+        _logger = logger;
+        _mediator = mediator;
+    }
 
-        private readonly ILogger<WeatherForecastController> _logger;
+    [HttpGet(Name = "GetWeatherForecast")]
+    public async Task<IActionResult> Get([FromQuery] GetWeatherForecastQuery query, CancellationToken cancellationToken)
+    {
+       var result = await _mediator.Send(query, cancellationToken);
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
-        {
-            _logger = logger;
-        }
-
-        [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
-        {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
-        }
+       return Ok(result);
     }
 }
