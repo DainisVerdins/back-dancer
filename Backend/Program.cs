@@ -1,16 +1,26 @@
+using Backend.Data;
 using Backend.MappingProfiles;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.OpenApi.Models;
 using Serilog;
+using System;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var logger = new LoggerConfiguration()
   .ReadFrom.Configuration(builder.Configuration)
-  .Enrich.FromLogContext()
+.Enrich.FromLogContext()
   .CreateLogger();
 
 
 // Add services to the container.
+
+builder.Services.AddDbContext<DataContext>(options =>
+        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddControllers();
+
 // https://www.claudiobernasconi.ch/2022/01/28/how-to-use-serilog-in-asp-net-core-web-api/ for precise logging
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
