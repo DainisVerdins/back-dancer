@@ -20,7 +20,8 @@ public class WeatherForecastController : ControllerBase
     [HttpGet(Name = "GetWeatherForecast")]
     public async Task<IActionResult> Get([FromQuery] GetWeatherForecastQuery query, CancellationToken cancellationToken)
     {
-       var result = await _mediator.Send(query, cancellationToken);
+        _logger.LogInformation("Weather Forecast executing...");
+        var result = await _mediator.Send(query, cancellationToken);
 
        return Ok(result);
     }
