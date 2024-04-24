@@ -20,7 +20,6 @@ public class GetWeatherForecastQueryHandler : IRequestHandler<GetWeatherForecast
 
     public Task<List<WeatherForecast>> Handle(GetWeatherForecastQuery request, CancellationToken cancellationToken)
     {
-
         var resultTask = Task<List<WeatherForecast>>.Factory.StartNew(() =>
         {
             var output = new List<WeatherForecast>();

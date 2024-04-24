@@ -1,5 +1,6 @@
 using Backend.Data;
 using Backend.MappingProfiles;
+using Backend.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Reflection;
@@ -35,6 +36,8 @@ try
 
     builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
+    // https://levelup.gitconnected.com/two-different-approaches-for-global-exception-handling-in-asp-net-core-web-api-f815c27b1e2d
+    builder.Services.AddTransient<ExceptionHandlingMiddleware>();
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.
@@ -47,7 +50,7 @@ try
     app.UseHttpsRedirection();
 
     app.UseAuthorization();
-
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.MapControllers();
 
     app.Run();
