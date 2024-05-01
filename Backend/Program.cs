@@ -1,6 +1,9 @@
+using Backend.Configuration;
 using Backend.Data;
 using Backend.MappingProfiles;
 using Backend.Middleware;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Reflection;
@@ -20,16 +23,34 @@ try
     builder.Logging.ClearProviders();
     builder.Logging.AddSerilog(logger);
 
-
+    // database connection
     builder.Services.AddDbContext<DataContext>(options =>
             options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-    builder.Services.AddControllers();
 
     builder.Services.AddControllers();
+
+    // for api versioning
+    // https://christian-schou.dk/blog/how-to-use-api-versioning-in-net-core-web-api/
+    builder.Services.AddApiVersioning(opt =>
+    {
+        opt.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
+        opt.AssumeDefaultVersionWhenUnspecified = true;
+        opt.ReportApiVersions = true;
+        opt.ApiVersionReader = ApiVersionReader.Combine(new UrlSegmentApiVersionReader(),
+                                                        new HeaderApiVersionReader("x-api-version"),
+                                                        new MediaTypeApiVersionReader("x-api-version"));
+    });
 
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-    builder.Services.AddEndpointsApiExplorer();
+    // Add ApiExplorer to discover versions
+    builder.Services.AddVersionedApiExplorer(setup =>
+    {
+        setup.GroupNameFormat = "'v'VVV";
+        setup.SubstituteApiVersionInUrl = true;
+    });
     builder.Services.AddSwaggerGen();
+
+    builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
 
     // Add AutoMapper with a custom mapping profile
     builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -40,11 +61,22 @@ try
     builder.Services.AddTransient<ExceptionHandlingMiddleware>();
     var app = builder.Build();
 
+    // for api versions
+    var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
+
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UseSwaggerUI(options =>
+        {
+            foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+            {
+                options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",
+                    description.GroupName.ToUpperInvariant());
+            }
+        });
     }
 
     app.UseHttpsRedirection();
