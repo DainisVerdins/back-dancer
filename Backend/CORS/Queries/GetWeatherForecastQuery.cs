@@ -1,7 +1,5 @@
 ﻿using Backend.Models;
 using MediatR;
-using System;
-using System.Threading.Tasks;
 
 namespace Backend.CORS.Queries;
 

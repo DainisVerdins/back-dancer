@@ -1,4 +1,5 @@
 using Backend.CORS.Queries;
+using Backend.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,8 +19,30 @@ public class WeatherForecastController : ControllerBase
         _mediator = mediator;
     }
 
+    /// <summary>
+    /// Endpoint what returns weather forecasts
+    /// </summary>
+    /// <remarks>
+    /// All the parameters in the request body can be null. 
+    ///
+    ///  You can search by using any of the parameters in the request.
+    ///  
+    ///  NOTE: You can only search by one parameter at a time
+    ///  
+    /// Sample request:
+    ///
+    ///     POST /Get
+    ///     {
+    ///        "maxNumberOfForecastToReturn": 8
+    ///     }
+    /// </remarks>
+    /// <param name="query"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>This endpoint returns a list of weather forecasts.</returns>
     [MapToApiVersion("1.0")] // map each action to a specific version
     [HttpGet(Name = "GetWeatherForecast")]
+    [ProducesResponseType(typeof(List<WeatherForecast>), StatusCodes.Status200OK)]
+
     public async Task<IActionResult> Get([FromQuery] GetWeatherForecastQuery query, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Weather Forecast executing...");
