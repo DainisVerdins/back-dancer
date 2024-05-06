@@ -5,6 +5,7 @@ using Backend.Middleware;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
 
@@ -48,7 +49,30 @@ try
         setup.GroupNameFormat = "'v'VVV";
         setup.SubstituteApiVersionInUrl = true;
     });
-    builder.Services.AddSwaggerGen();
+    //Swagger Documentation Section // probably need to remove this section
+    var info = new OpenApiInfo()
+    {
+        Title = "Back dancer",
+        Version = "v1",
+        Description = "Description of your API",
+        Contact = new OpenApiContact()
+        {
+            Name = "Your name",
+            Email = "your@email.com",
+        }
+
+    };
+
+
+    // read more about XML comments here
+    // https://medium.com/@egwudaujenyuojo/implement-api-documentation-in-net-7-swagger-openapi-and-xml-comments-214caf53eece
+    builder.Services.AddSwaggerGen(c =>
+    {
+        // Set the comments path for the Swagger JSON and UI.
+        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        c.IncludeXmlComments(xmlPath);
+    });
 
     builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
 
@@ -68,7 +92,10 @@ try
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
-        app.UseSwagger();
+        app.UseSwagger(u =>
+        {
+            u.RouteTemplate = "swagger/{documentName}/swagger.json";
+        });
         app.UseSwaggerUI(options =>
         {
             foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
