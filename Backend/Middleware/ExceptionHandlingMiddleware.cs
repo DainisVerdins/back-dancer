@@ -1,4 +1,5 @@
 ﻿using Backend.Models;
+using MediatR;
 using System.Net;
 using System.Net.Mime;
 using System.Text.Json;
@@ -34,8 +35,8 @@ public class ExceptionHandlingMiddleware : IMiddleware
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
         var response = _enviroment.IsDevelopment()
-               ? new CustomResponse(context.Response.StatusCode, exception.Message, exception?.StackTrace?.ToString())
-               : new CustomResponse(context.Response.StatusCode, "Internal Server Error");
+               ? new BaseResponse<Unit>(HttpStatusCode.InternalServerError, exception.Message, exception?.StackTrace?.ToString())
+               : new BaseResponse<Unit>(HttpStatusCode.InternalServerError, "Internal Server Error", null);
 
         var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         var json = JsonSerializer.Serialize(response, options);

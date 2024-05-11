@@ -41,13 +41,13 @@ public class WeatherForecastController : ControllerBase
     /// <returns>This endpoint returns a list of weather forecasts.</returns>
     [MapToApiVersion("1.0")] // map each action to a specific version
     [HttpGet(Name = "GetWeatherForecast")]
-    [ProducesResponseType(typeof(List<WeatherForecast>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BaseResponse<List<WeatherForecast>>), StatusCodes.Status200OK)]
 
     public async Task<IActionResult> Get([FromQuery] GetWeatherForecastQuery query, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Weather Forecast executing...");
-        var result = await _mediator.Send(query, cancellationToken);
+        var response = await _mediator.Send(query, cancellationToken);
 
-        return Ok(result);
+        return StatusCode((int)response.StatusCode, response);
     }
 }

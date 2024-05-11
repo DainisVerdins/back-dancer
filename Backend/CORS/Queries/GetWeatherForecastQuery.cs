@@ -1,29 +1,33 @@
-﻿using Backend.Models;
+﻿using AutoMapper;
+using Backend.Models;
+using Backend.Models.Dtos;
 using MediatR;
 
 namespace Backend.CORS.Queries;
 
-public class GetWeatherForecastQuery : IRequest<List<WeatherForecast>>
+public class GetWeatherForecastQuery : IRequest<BaseResponse<List<WeatherForecastDto>>>
 {
     public int MaxNumberOfForecastToReturn { get; init; }
 }
-public class GetWeatherForecastQueryHandler : IRequestHandler<GetWeatherForecastQuery, List<WeatherForecast>>
+public class GetWeatherForecastQueryHandler : IRequestHandler<GetWeatherForecastQuery, BaseResponse<List<WeatherForecastDto>>>
 {
     private static readonly string[] Summaries = new[] {
         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
     };
-    public GetWeatherForecastQueryHandler()
+    private readonly IMapper _mapper;
+    public GetWeatherForecastQueryHandler(IMapper mapper)
     {
+        _mapper = mapper;
     }
 
-    public Task<List<WeatherForecast>> Handle(GetWeatherForecastQuery request, CancellationToken cancellationToken)
+    public async Task<BaseResponse<List<WeatherForecastDto>>> Handle(GetWeatherForecastQuery request, CancellationToken cancellationToken)
     {
         var resultTask = Task<List<WeatherForecast>>.Factory.StartNew(() =>
         {
-            var output = new List<WeatherForecast>();
+            var generatedForeCasts = new List<WeatherForecast>();
             for (int i = 0; i < request.MaxNumberOfForecastToReturn; i++)
             {
-                output.Add(new WeatherForecast
+                generatedForeCasts.Add(new WeatherForecast
                 {
                     Date = DateOnly.FromDateTime(DateTime.Now.AddDays(i)),
                     TemperatureC = Random.Shared.Next(-20, 55),
@@ -31,9 +35,10 @@ public class GetWeatherForecastQueryHandler : IRequestHandler<GetWeatherForecast
                 });
             }
 
-            return output;
+            return generatedForeCasts;
         });
+        var output = (await resultTask).Select(_mapper.Map<WeatherForecastDto>).ToList();
 
-        return resultTask;
+        return new BaseResponse<List<WeatherForecastDto>>(output, System.Net.HttpStatusCode.OK);
     }
 }
