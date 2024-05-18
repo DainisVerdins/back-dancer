@@ -23,7 +23,7 @@ public class WeatherForecastController : ControllerBase
     /// Endpoint what returns weather forecasts
     /// </summary>
     /// <remarks>
-    /// All the parameters in the request body can be null. 
+    ///  Input parameter must be integer greater than 0. 
     ///
     ///  You can search by using any of the parameters in the request.
     ///  
