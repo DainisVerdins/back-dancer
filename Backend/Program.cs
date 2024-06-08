@@ -1,11 +1,15 @@
+using Application;
 using Backend.Configuration;
 using Backend.Data;
 using Backend.MappingProfiles;
 using Backend.Middleware;
+using Infrastructure;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Persistence;
+using Presentation;
 using Serilog;
 using System.Reflection;
 
@@ -24,11 +28,17 @@ try
     builder.Logging.ClearProviders();
     builder.Logging.AddSerilog(logger);
 
-    // database connection
+    // database connection // should be moved to persistance project
     builder.Services.AddDbContext<DataContext>(options =>
             options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
     builder.Services.AddControllers();
+
+    builder.Services
+        .AddApplication()
+        .AddInfrastructure()
+        .AddPersistence()
+        .AddPresentation();
 
     // for api versioning
     // https://christian-schou.dk/blog/how-to-use-api-versioning-in-net-core-web-api/
@@ -63,7 +73,6 @@ try
 
     };
 
-
     // read more about XML comments here
     // https://medium.com/@egwudaujenyuojo/implement-api-documentation-in-net-7-swagger-openapi-and-xml-comments-214caf53eece
     builder.Services.AddSwaggerGen(c =>
@@ -79,6 +88,7 @@ try
     // Add AutoMapper with a custom mapping profile
     builder.Services.AddAutoMapper(typeof(MappingProfile));
 
+    // should be moved to other project
     builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
     // https://levelup.gitconnected.com/two-different-approaches-for-global-exception-handling-in-asp-net-core-web-api-f815c27b1e2d
