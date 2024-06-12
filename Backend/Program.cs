@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Persistence;
-using Presentation;
 using Serilog;
 using System.Reflection;
 
@@ -37,8 +36,7 @@ try
     builder.Services
         .AddApplication()
         .AddInfrastructure()
-        .AddPersistence()
-        .AddPresentation();
+        .AddPersistence();
 
     // for api versioning
     // https://christian-schou.dk/blog/how-to-use-api-versioning-in-net-core-web-api/
