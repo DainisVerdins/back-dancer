@@ -1,12 +1,10 @@
 using Application;
 using Backend.Configuration;
-using Backend.Data;
 using Backend.MappingProfiles;
 using Backend.Middleware;
 using Infrastructure;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Persistence;
 using Serilog;
@@ -26,17 +24,12 @@ try
     // https://www.claudiobernasconi.ch/2022/01/28/how-to-use-serilog-in-asp-net-core-web-api/ for precise logging
     builder.Logging.ClearProviders();
     builder.Logging.AddSerilog(logger);
-
-    // database connection // should be moved to persistance project
-    builder.Services.AddDbContext<DataContext>(options =>
-            options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-
     builder.Services.AddControllers();
 
     builder.Services
         .AddApplication()
         .AddInfrastructure()
-        .AddPersistence();
+        .AddPersistence(builder.Configuration);
 
     // for api versioning
     // https://christian-schou.dk/blog/how-to-use-api-versioning-in-net-core-web-api/
