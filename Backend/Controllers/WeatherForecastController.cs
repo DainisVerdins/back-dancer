@@ -1,5 +1,6 @@
 using Backend.CORS.Queries;
 using Backend.Models;
+using Backend.Models.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,6 +14,7 @@ public class WeatherForecastController : ControllerBase
     private readonly ILogger<WeatherForecastController> _logger;
 
     private readonly IMediator _mediator;
+
     public WeatherForecastController(ILogger<WeatherForecastController> logger, IMediator mediator)
     {
         _logger = logger;
@@ -41,7 +43,7 @@ public class WeatherForecastController : ControllerBase
     /// <returns>This endpoint returns a list of weather forecasts.</returns>
     [MapToApiVersion("1.0")] // map each action to a specific version
     [HttpGet(Name = "GetWeatherForecast")]
-    [ProducesResponseType(typeof(BaseResponse<List<WeatherForecast>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BaseResponse<List<WeatherForecastDto>>), StatusCodes.Status200OK)]
 
     public async Task<IActionResult> Get([FromQuery] GetWeatherForecastQuery query, CancellationToken cancellationToken)
     {
