@@ -1,6 +1,6 @@
-﻿namespace WebApi.Models.Dtos;
+﻿namespace Domain.Models;
 
-public class WeatherForecastDto
+public class WeatherForecast
 {
     public int Id { get; set; }
     public DateOnly Date { get; set; }

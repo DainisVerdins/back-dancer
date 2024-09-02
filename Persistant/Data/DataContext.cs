@@ -1,13 +1,11 @@
-﻿using Backend.Models;
+﻿using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Backend.Data;
+namespace Persistence.Data;
 
 public class DataContext : DbContext
 {
-    public DbSet<WeatherForecast> WeatherForecasts { get; set; }
     public DataContext(DbContextOptions<DataContext> options) : base(options)
-    {
-
-    }
+    { }
+    public DbSet<WeatherForecast> WeatherForecasts { get; set; }
 }
