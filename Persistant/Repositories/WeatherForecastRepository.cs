@@ -1,7 +1,5 @@
 ﻿using Domain.Interfaces;
 using Domain.Models;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Persistence.Data;
 using Persistence.Repository;
 
@@ -9,9 +7,9 @@ namespace Persistence.Repositories;
 
 public class WeatherForecastRepository : GenericRepository<WeatherForecast>, IWeatherForecastRepository
 {
-    private static readonly string[] Summaries = new[] {
+    private static readonly string[] Summaries = [
         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
+    ];
     public WeatherForecastRepository(DataContext context) : base(context)
     {
     }

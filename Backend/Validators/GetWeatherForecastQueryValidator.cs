@@ -1,7 +1,7 @@
-﻿using Backend.CORS.Queries;
-using FluentValidation;
+﻿using FluentValidation;
+using WebApi.CORS.Queries;
 
-namespace Backend.Validators;
+namespace WebApi.Validators;
 
 public class GetWeatherForecastQueryValidator : AbstractValidator<GetWeatherForecastQuery>
 {
@@ -9,6 +9,6 @@ public class GetWeatherForecastQueryValidator : AbstractValidator<GetWeatherFore
     {
         RuleFor(x => x.MaxNumberOfForecastToReturn)
             .NotNull()
-            .GreaterThan(0); 
+            .GreaterThan(0);
     }
 }

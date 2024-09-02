@@ -1,8 +1,8 @@
-using Backend.CORS.Queries;
 using Backend.Models;
-using Backend.Models.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using WebApi.CORS.Queries;
+using WebApi.Models.Dtos;
 
 namespace Backend.Controllers;
 

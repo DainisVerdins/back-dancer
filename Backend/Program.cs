@@ -1,5 +1,4 @@
 using Application;
-using Backend.Configuration;
 using Backend.MappingProfiles;
 using Backend.Middleware;
 using Infrastructure;
@@ -9,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using Persistence;
 using Serilog;
 using System.Reflection;
+using WebApi.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
