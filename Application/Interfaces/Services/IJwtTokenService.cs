@@ -1,7 +1,7 @@
 ﻿using Application.Entities;
 using System.Security.Claims;
 
-namespace Application.Interfaces;
+namespace Application.Interfaces.Services;
 
 public interface IJwtTokenService
 {

@@ -1,6 +1,8 @@
-﻿namespace Domain.Models;
+﻿using Domain.Interfaces;
 
-public class WeatherForecast
+namespace Domain.Models;
+
+public class WeatherForecast: IEntity
 {
     public int Id { get; set; }
     public DateOnly Date { get; set; }

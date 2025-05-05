@@ -1,14 +1,14 @@
 using Application;
-using Persistence;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Infrastructure;
 using Infrastructure.Settings;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Persistence;
 using Serilog;
 using System.Reflection;
 using WebApi.Configuration;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace WebApi;
 public class Program

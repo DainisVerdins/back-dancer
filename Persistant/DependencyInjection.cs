@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Persistence.Data;
-using Domain.Interfaces;
 namespace Persistence;
 
 public static class DependencyInjection
@@ -12,7 +12,8 @@ public static class DependencyInjection
         services.AddDbContext<DataContext>(options =>
                 options.UseSqlite(configuration.GetConnectionString("DefaultConnection"), db => db.MigrationsAssembly(typeof(DataContext).Assembly.FullName)));
 
-        services.AddTransient<IUnitOfWork, UnitOfWork.UnitOfWork>();
+        services.AddScoped<IUnitOfWork, UnitOfWork.UnitOfWork>();
+
 
         return services;
     }

@@ -1,6 +1,6 @@
 ﻿using Application.Entities;
 using Application.Exceptions;
-using Application.Interfaces;
+using Application.Interfaces.Services;
 using Infrastructure.Settings;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
