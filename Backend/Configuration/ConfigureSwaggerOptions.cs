@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.ApiExplorer;
+﻿using Asp.Versioning.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -46,7 +47,7 @@ public class ConfigureSwaggerOptions
     /// </summary>
     /// <param name="desc"></param>
     /// <returns>Information about the API</returns>
-    private OpenApiInfo CreateVersionInfo(
+    private static OpenApiInfo CreateVersionInfo(
             ApiVersionDescription desc)
     {
         var info = new OpenApiInfo()

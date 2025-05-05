@@ -1,125 +1,154 @@
 using Application;
-using Backend.MappingProfiles;
-using Backend.Middleware;
-using Infrastructure;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.AspNetCore.Mvc.Versioning;
-using Microsoft.OpenApi.Models;
 using Persistence;
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
+using Infrastructure;
+using Infrastructure.Settings;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Reflection;
 using WebApi.Configuration;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
-var builder = WebApplication.CreateBuilder(args);
-
-var logger = new LoggerConfiguration()
-  .ReadFrom.Configuration(builder.Configuration)
-  .Enrich.FromLogContext()
-  .CreateLogger();
-
-try
+namespace WebApi;
+public class Program
 {
-    Log.Information("Starting Back-Dancer(BE) application");
-    // Add services to the container.
-    // https://www.claudiobernasconi.ch/2022/01/28/how-to-use-serilog-in-asp-net-core-web-api/ for precise logging
-    builder.Logging.ClearProviders();
-    builder.Logging.AddSerilog(logger);
-    builder.Services.AddControllers();
-
-    builder.Services
-        .AddApplication()
-        .AddInfrastructure()
-        .AddPersistence(builder.Configuration);
-
-    // for api versioning
-    // https://christian-schou.dk/blog/how-to-use-api-versioning-in-net-core-web-api/
-    builder.Services.AddApiVersioning(opt =>
+    public static async Task Main(string[] args)
     {
-        opt.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
-        opt.AssumeDefaultVersionWhenUnspecified = true;
-        opt.ReportApiVersions = true;
-        opt.ApiVersionReader = ApiVersionReader.Combine(new UrlSegmentApiVersionReader(),
-                                                        new HeaderApiVersionReader("x-api-version"),
-                                                        new MediaTypeApiVersionReader("x-api-version"));
-    });
 
-    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-    // Add ApiExplorer to discover versions
-    builder.Services.AddVersionedApiExplorer(setup =>
-    {
-        setup.GroupNameFormat = "'v'VVV";
-        setup.SubstituteApiVersionInUrl = true;
-    });
-    //Swagger Documentation Section // probably need to remove this section
-    var info = new OpenApiInfo()
-    {
-        Title = "Back dancer",
-        Version = "v1",
-        Description = "Description of your API",
-        Contact = new OpenApiContact()
+        var builder = WebApplication.CreateBuilder(args);
+
+        var loggerConfiguration = new LoggerConfiguration();
+        if (builder.Environment.IsDevelopment())
         {
-            Name = "Your name",
-            Email = "your@email.com",
+            loggerConfiguration = loggerConfiguration
+                .MinimumLevel.Information()
+                .WriteTo.Console();
         }
-
-    };
-
-    // read more about XML comments here
-    // https://medium.com/@egwudaujenyuojo/implement-api-documentation-in-net-7-swagger-openapi-and-xml-comments-214caf53eece
-    builder.Services.AddSwaggerGen(c =>
-    {
-        // Set the comments path for the Swagger JSON and UI.
-        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-        c.IncludeXmlComments(xmlPath);
-    });
-
-    builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
-
-    // Add AutoMapper with a custom mapping profile
-    builder.Services.AddAutoMapper(typeof(MappingProfile));
-
-    // should be moved to other project
-    builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-
-    // https://levelup.gitconnected.com/two-different-approaches-for-global-exception-handling-in-asp-net-core-web-api-f815c27b1e2d
-    builder.Services.AddTransient<ExceptionHandlingMiddleware>();
-    var app = builder.Build();
-
-    // for api versions
-    var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-
-
-    // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger(u =>
+        else
         {
-            u.RouteTemplate = "swagger/{documentName}/swagger.json";
-        });
-        app.UseSwaggerUI(options =>
+            loggerConfiguration = loggerConfiguration
+                .ReadFrom.Configuration(builder.Configuration)
+                .Enrich.FromLogContext();
+        }
+        var logger = loggerConfiguration.CreateLogger();
+        try
         {
-            foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+            Log.Information("Starting Backend App");
+            // Add services to the container.
+            // https://www.claudiobernasconi.ch/2022/01/28/how-to-use-serilog-in-asp-net-core-web-api/ for precise logging
+            builder.Logging.ClearProviders();
+            builder.Logging.AddSerilog(logger);
+
+            // project dependencies in Clean Architecture pattern
+            builder.Services
+                .AddApplication()
+                .AddPersistence(builder.Configuration)
+                .AddInfrastructure();
+
+            // add swagger
+            builder.Services.AddSwaggerGen();
+            builder.Services.AddEndpointsApiExplorer();
+            // configure swagger
+            builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
+
+            // API versioning
+            builder.Services.AddApiVersioning(opt =>
             {
-                options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",
-                    description.GroupName.ToUpperInvariant());
+                opt.DefaultApiVersion = new ApiVersion(1, 0);
+                opt.AssumeDefaultVersionWhenUnspecified = true;
+                opt.ReportApiVersions = true;
+                opt.ApiVersionReader = ApiVersionReader.Combine(new UrlSegmentApiVersionReader(),
+                                                                new HeaderApiVersionReader("x-api-version"),
+                                                                new MediaTypeApiVersionReader("x-api-version"));
+            })
+                .AddApiExplorer(setup =>
+                {
+                    setup.GroupNameFormat = "'v'VVV";
+                    setup.SubstituteApiVersionInUrl = true;
+                });
+
+            builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+            builder.Services.AddCors(options =>
+            {
+                var allowedCordsOrigins = builder.Configuration.GetSection("AllowedCorsOrigins").Value;
+                allowedCordsOrigins ??= "http://localhost:5173";
+                options.AddPolicy("FrontendPolicy", builder => builder
+                                   .WithOrigins(allowedCordsOrigins.Split(","))
+                                   .AllowAnyHeader()
+                                   .AllowAnyMethod()
+                                   .AllowCredentials());
+            });
+
+            builder.Services.AddAuthorization();
+            var authOptions = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
+
+            if (authOptions is null)
+                throw new Exception("Jwt setting was not provided!");
+
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = authOptions.Issuer,
+                        ValidateAudience = true,
+                        ValidAudience = authOptions.Audience,
+                        ValidateLifetime = true,
+                        IssuerSigningKey = authOptions.GetSymmetricSecurityKey(),
+                        ValidateIssuerSigningKey = true,
+                    };
+                });
+
+            builder.Services.AddControllers();
+
+            var app = builder.Build();
+
+
+            //using (var scope = app.Services.CreateScope())
+            //{
+            //    var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
+            //    await initializer.InitializeAsync();
+            //}
+
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+                app.UseSwagger(u =>
+                {
+                    u.RouteTemplate = "swagger/{documentName}/swagger.json";
+                });
+                var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+                app.UseSwaggerUI(options =>
+                {
+                    foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+                    {
+                        options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",
+                            description.GroupName.ToUpperInvariant());
+                    }
+                    options.RoutePrefix = string.Empty;
+                });
             }
-        });
+
+            app.UseCors("FrontendPolicy");
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseHttpsRedirection();
+            app.MapControllers();
+
+            app.Run();
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "Application terminated unexpectedly");
+        }
+        finally
+        {
+            Log.Information("Stopping Backend application");
+            Log.CloseAndFlush();
+        }
     }
-
-    app.UseHttpsRedirection();
-
-    app.UseAuthorization();
-    app.UseMiddleware<ExceptionHandlingMiddleware>();
-    app.MapControllers();
-
-    app.Run();
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "Application terminated unexpectedly");
-}
-finally
-{
-    Log.CloseAndFlush();
 }

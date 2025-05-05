@@ -1,10 +1,11 @@
+using Asp.Versioning;
 using Backend.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.CORS.Queries;
 using WebApi.Models.Dtos;
 
-namespace Backend.Controllers;
+namespace WebApi.Controllers;
 
 [ApiController]
 [Route("api/v{version:apiVersion}/[controller]")]
