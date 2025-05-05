@@ -4,12 +4,9 @@ using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Infrastructure;
 using Infrastructure.Settings;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using System;
 using System.Reflection;
-using System.Threading.Tasks;
 using WebApi.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
