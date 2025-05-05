@@ -1,7 +1,6 @@
-﻿using Domain.Interfaces;
+﻿using Application.Interfaces.Repositories;
 using Domain.Models;
 using Persistence.Data;
-using Persistence.Repository;
 
 namespace Persistence.Repositories;
 

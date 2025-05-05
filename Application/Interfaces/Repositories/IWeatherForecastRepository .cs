@@ -1,6 +1,6 @@
 ﻿using Domain.Models;
 
-namespace Domain.Interfaces;
+namespace Application.Interfaces.Repositories;
 
 public interface IWeatherForecastRepository : IGenericRepository<WeatherForecast>
 {

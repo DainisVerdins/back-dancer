@@ -1,6 +1,6 @@
-﻿using AutoMapper;
+﻿using Application.Interfaces;
+using AutoMapper;
 using Backend.Models;
-using Domain.Interfaces;
 using MediatR;
 using WebApi.Models.Dtos;
 
