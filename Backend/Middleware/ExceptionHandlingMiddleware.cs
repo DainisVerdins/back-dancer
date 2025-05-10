@@ -1,9 +1,9 @@
-﻿using Backend.Models;
-using System.Net;
+﻿using System.Net;
 using System.Net.Mime;
 using System.Text.Json;
+using WebApi.Models;
 
-namespace Backend.Middleware;
+namespace WebApi.Middleware;
 
 public class ExceptionHandlingMiddleware : IMiddleware
 {
