@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace WebApi.Models;
+namespace Backend.Models;
 
 public class BaseResponse<T>
 {

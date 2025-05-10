@@ -1,9 +1,8 @@
-﻿using Domain.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using Persistence.Data;
-using Persistence.Identity;
+using Domain.Interfaces;
 namespace Persistence;
 
 public static class DependencyInjection
@@ -14,17 +13,6 @@ public static class DependencyInjection
                 options.UseSqlite(configuration.GetConnectionString("DefaultConnection"), db => db.MigrationsAssembly(typeof(DataContext).Assembly.FullName)));
 
         services.AddTransient<IUnitOfWork, UnitOfWork.UnitOfWork>();
-
-        services.AddIdentityCore<AppUser>(options =>
-        {
-            options.Password.RequireDigit = true;
-            options.Password.RequiredLength = 8;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequireUppercase = true;
-            options.Password.RequireLowercase = false;
-        })
-           .AddRoles<AppRole>()
-           .AddEntityFrameworkStores<DataContext>();
 
         return services;
     }

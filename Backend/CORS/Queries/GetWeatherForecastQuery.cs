@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
+using Backend.Models;
 using Domain.Interfaces;
 using MediatR;
-using WebApi.Models;
 using WebApi.Models.Dtos;
 
 namespace WebApi.CORS.Queries;

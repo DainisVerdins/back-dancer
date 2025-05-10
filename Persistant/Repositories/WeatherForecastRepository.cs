@@ -1,6 +1,7 @@
 ﻿using Domain.Interfaces;
 using Domain.Models;
 using Persistence.Data;
+using Persistence.Repository;
 
 namespace Persistence.Repositories;
 
