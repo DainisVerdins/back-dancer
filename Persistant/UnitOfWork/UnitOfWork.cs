@@ -1,6 +1,5 @@
 ﻿using Application.Interfaces;
 using Application.Interfaces.Repositories;
-using Infrastructure.Persistance.Repositories;
 using Persistence.Data;
 using Persistence.Repositories;
 
