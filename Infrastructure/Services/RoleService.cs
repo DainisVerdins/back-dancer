@@ -1,0 +1,86 @@
+﻿using Application.Exceptions;
+using Application.Interfaces.Services;
+using AutoMapper;
+using Domain.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Persistence.Identity.Models;
+
+namespace Infrastructure.Services;
+
+public class RoleService : IRoleService
+{
+    private readonly UserManager<AppUser> _userManager;
+    private readonly RoleManager<AppRole> _roleManager;
+    private readonly IMapper _mapper;
+    public RoleService(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager, IMapper mapper)
+    {
+        _roleManager = roleManager;
+        _userManager = userManager;
+        _mapper = mapper;
+    }
+
+    public async Task CreateRoleAsync(Role roleToCreate)
+    {
+        await _roleManager.CreateAsync(new AppRole { Name = roleToCreate.Name });
+    }
+
+    public async Task<IList<Role>> GetAllRolesAsync()
+    {
+        var roles = await _roleManager.Roles.ToListAsync();
+
+        return roles.Select(r => _mapper.Map<Role>(r)).ToList();
+    }
+
+    public async Task<Role?> GetRoleByNameAsync(string roleName)
+    {
+        if (string.IsNullOrEmpty(roleName))
+            throw new ArgumentException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty), nameof(roleName));
+
+        var appRole = await _roleManager.FindByNameAsync(roleName);
+        if (appRole == null)
+            return null;
+
+        return _mapper.Map<Role>(appRole);
+    }
+
+    public async Task<IList<Role>> GetRolesForUserAsync(User user)
+    {
+        if (user is null)
+            throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty), nameof(user));
+
+        var appUser = await _userManager.FindByIdAsync(user.Id.ToString());
+        if (appUser == null)
+            return [];
+
+        var roleNames = await _userManager.GetRolesAsync(appUser);
+        var roles = new List<Role>();
+        foreach (var roleName in roleNames)
+        {
+            var appRole = await _roleManager.FindByNameAsync(roleName);
+            if (appRole != null)
+                roles.Add(_mapper.Map<Role>(appRole));
+        }
+        return roles;
+    }
+
+    public async Task<bool> IsUserInRoleAsync(User user, string roleName)
+    {
+        if (string.IsNullOrEmpty(roleName))
+            throw new ArgumentException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty), nameof(roleName));
+        if (user is null)
+            throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty), nameof(user));
+
+        var appUser = _mapper.Map<AppUser>(user);
+
+        return await _userManager.IsInRoleAsync(appUser, roleName);
+    }
+
+    public async Task<bool> RoleExistsAsync(string roleName)
+    {
+        if (string.IsNullOrEmpty(roleName))
+            throw new ArgumentException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty), nameof(roleName));
+
+        return await _roleManager.RoleExistsAsync(roleName);
+    }
+}

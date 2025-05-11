@@ -1,9 +1,8 @@
 ﻿using Application.Interfaces.Repositories;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
-using Persistence.Repositories;
 
-namespace Infrastructure.Persistance.Repositories;
+namespace Persistence.Repositories;
 
 public class RefreshTokenRepository : GenericRepository<RefreshToken>, IRefreshTokenRepository
 {

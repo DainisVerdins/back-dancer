@@ -44,7 +44,7 @@ public class Program
             builder.Services
                 .AddApplication()
                 .AddPersistence(builder.Configuration)
-                .AddInfrastructure();
+                .AddInfrastructure(builder.Configuration);
 
             // add swagger
             builder.Services.AddSwaggerGen();
