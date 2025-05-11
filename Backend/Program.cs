@@ -13,10 +13,11 @@ using WebApi.Configuration;
 namespace WebApi;
 public class Program
 {
-    public static async Task Main(string[] args)
+    public static void Main(string[] args)
     {
-
-        var builder = WebApplication.CreateBuilder(args);
+        try
+        {
+            var builder = WebApplication.CreateBuilder(args);
 
         var loggerConfiguration = new LoggerConfiguration();
         if (builder.Environment.IsDevelopment())
@@ -32,8 +33,7 @@ public class Program
                 .Enrich.FromLogContext();
         }
         var logger = loggerConfiguration.CreateLogger();
-        try
-        {
+
             Log.Information("Starting Backend App");
             // Add services to the container.
             // https://www.claudiobernasconi.ch/2022/01/28/how-to-use-serilog-in-asp-net-core-web-api/ for precise logging
