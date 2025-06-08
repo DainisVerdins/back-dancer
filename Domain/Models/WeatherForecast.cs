@@ -2,7 +2,7 @@
 
 namespace Domain.Models;
 
-public class WeatherForecast: IEntity
+public class WeatherForecast : IEntity
 {
     public int Id { get; set; }
     public DateOnly Date { get; set; }
