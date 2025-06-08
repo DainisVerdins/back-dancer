@@ -1,4 +1,4 @@
-﻿using Application.Common;
+﻿using Application.CORS.Commands.Authentication;
 using Application.Dtos;
 using Application.Entities.Common;
 using Application.Exceptions;
@@ -10,8 +10,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Net;
-using Web.CQRS.Commands;
-using Web.Models.Authentication;
 
 namespace WebApi.Controllers;
 
@@ -50,7 +48,7 @@ public class AuthenticateController : ControllerBase
 
         var response = await _mediator.Send(new SignInUserCommand { Model = model }, cancellationToken);
 
-        if (response.HasError)
+        if (!response.IsSuccess)
             return StatusCode((int)HttpStatusCode.BadRequest, new BaseResponse<SignInResponseDto>(null, response.ErrorMessages, HttpStatusCode.BadRequest));
 
         return StatusCode((int)response.StatusCode, response);

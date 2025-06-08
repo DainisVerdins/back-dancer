@@ -1,39 +1,48 @@
+
+namespace Web;
 using Application;
+using Application.Entities.Common;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Infrastructure;
 using Infrastructure.Settings;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Persistence;
 using Serilog;
+using System;
+using System.Net;
 using System.Reflection;
+using System.Threading.RateLimiting;
+using System.Threading.Tasks;
 using WebApi.Configuration;
 
-namespace WebApi;
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
+
+        var builder = WebApplication.CreateBuilder(args);
+
+        var loggerConfiguration = new LoggerConfiguration();
+        if (builder.Environment.IsDevelopment())
+        {
+            loggerConfiguration = loggerConfiguration
+                .MinimumLevel.Information()
+                .WriteTo.Console();
+        }
+        else
+        {
+            loggerConfiguration = loggerConfiguration
+                .ReadFrom.Configuration(builder.Configuration)
+                .Enrich.FromLogContext();
+        }
+        var logger = loggerConfiguration.CreateLogger();
         try
         {
-            var builder = WebApplication.CreateBuilder(args);
-
-            var loggerConfiguration = new LoggerConfiguration();
-            if (builder.Environment.IsDevelopment())
-            {
-                loggerConfiguration = loggerConfiguration
-                    .MinimumLevel.Information()
-                    .WriteTo.Console();
-            }
-            else
-            {
-                loggerConfiguration = loggerConfiguration
-                    .ReadFrom.Configuration(builder.Configuration)
-                    .Enrich.FromLogContext();
-            }
-            var logger = loggerConfiguration.CreateLogger();
-
             Log.Information("Starting Backend App");
             // Add services to the container.
             // https://www.claudiobernasconi.ch/2022/01/28/how-to-use-serilog-in-asp-net-core-web-api/ for precise logging
@@ -42,8 +51,8 @@ public class Program
 
             // project dependencies in Clean Architecture pattern
             builder.Services
-                .AddApplication()
                 .AddPersistence(builder.Configuration)
+                .AddApplication()
                 .AddInfrastructure(builder.Configuration);
 
             // add swagger
@@ -103,7 +112,27 @@ public class Program
                 });
 
             builder.Services.AddControllers();
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.OnRejected = async (context, cancellationToken) =>
+                {
+                    context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                    var errorMessage = "Too many requests. Please try again later.";
+                    if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+                        errorMessage = $"Too many requests. Please try again after {retryAfter.TotalMinutes} minute(s).";
 
+                    await context.HttpContext.Response.WriteAsJsonAsync(
+                             new BaseResponse<Unit>(errorMessage, HttpStatusCode.TooManyRequests), cancellationToken);
+
+                };
+                options.AddFixedWindowLimiter("FixedPolicy", opt =>
+                {
+                    opt.Window = TimeSpan.FromMinutes(1);    // Time window of 1 minute
+                    opt.PermitLimit = 100;                   // Allow 100 requests per minute
+                    opt.QueueLimit = 2;                      // Queue limit of 2
+                    opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                });
+            });
             var app = builder.Build();
 
 
