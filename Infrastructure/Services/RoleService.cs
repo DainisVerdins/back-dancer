@@ -1,19 +1,17 @@
 ﻿using Application.Exceptions;
 using Application.Interfaces.Services;
 using AutoMapper;
-using Domain.Entities;
+using Domain.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Persistence.Identity.Models;
 
 namespace Infrastructure.Services;
 
 public class RoleService : IRoleService
 {
-    private readonly UserManager<AppUser> _userManager;
-    private readonly RoleManager<AppRole> _roleManager;
+    private readonly UserManager<User> _userManager;
+    private readonly RoleManager<Role> _roleManager;
     private readonly IMapper _mapper;
-    public RoleService(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager, IMapper mapper)
+    public RoleService(UserManager<User> userManager, RoleManager<Role> roleManager, IMapper mapper)
     {
         _roleManager = roleManager;
         _userManager = userManager;
@@ -22,14 +20,7 @@ public class RoleService : IRoleService
 
     public async Task CreateRoleAsync(Role roleToCreate)
     {
-        await _roleManager.CreateAsync(new AppRole { Name = roleToCreate.Name });
-    }
-
-    public async Task<IList<Role>> GetAllRolesAsync()
-    {
-        var roles = await _roleManager.Roles.ToListAsync();
-
-        return roles.Select(r => _mapper.Map<Role>(r)).ToList();
+        await _roleManager.CreateAsync(roleToCreate);
     }
 
     public async Task<Role?> GetRoleByNameAsync(string roleName)
@@ -71,7 +62,7 @@ public class RoleService : IRoleService
         if (user is null)
             throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty), nameof(user));
 
-        var appUser = _mapper.Map<AppUser>(user);
+        var appUser = _mapper.Map<User>(user);
 
         return await _userManager.IsInRoleAsync(appUser, roleName);
     }

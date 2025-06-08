@@ -1,11 +1,10 @@
 ﻿using Application.Exceptions;
 using Application.Interfaces.Services;
 using AutoMapper;
-using Domain.Entities;
+using Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Persistence.Identity.Constants;
-using Persistence.Identity.Models;
 using System.Security.Claims;
 
 namespace Infrastructure.Services;
@@ -13,12 +12,12 @@ namespace Infrastructure.Services;
 public class UserService : IUserService
 {
 
-    private readonly UserManager<AppUser> _userManager;
+    private readonly UserManager<User> _userManager;
     private readonly IMapper _mapper;
     private readonly IRoleService _roleService;
     private readonly IHttpContextAccessor _httpContextAccessor;
     public UserService(
-        UserManager<AppUser> userManager, IMapper mapper,
+        UserManager<User> userManager, IMapper mapper,
         IRoleService roleService, IHttpContextAccessor httpContextAccessor)
     {
         _userManager = userManager;
@@ -49,7 +48,7 @@ public class UserService : IUserService
         if (await _userManager.FindByNameAsync(userToCreate.UserName) != null)
             return true;
 
-        var appUserToAdd = new AppUser { Email = userToCreate.Email, UserName = userToCreate.UserName };
+        var appUserToAdd = new User { Email = userToCreate.Email, UserName = userToCreate.UserName };
         var result = await _userManager.CreateAsync(appUserToAdd, password);
 
         return result.Succeeded == true;
@@ -99,7 +98,7 @@ public class UserService : IUserService
         if (user is null)
             throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
 
-        var appUser = _mapper.Map<AppUser>(user);
+        var appUser = _mapper.Map<User>(user);
 
         return await _userManager.GetClaimsAsync(appUser);
     }

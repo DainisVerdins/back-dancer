@@ -1,7 +1,8 @@
-﻿namespace Domain.Entities;
+﻿using Microsoft.AspNetCore.Identity;
 
-public class Role
+namespace Domain.Models;
+
+public class Role : IdentityRole<int>
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
+    public string RoleCode { get; set; } = string.Empty;
 }
