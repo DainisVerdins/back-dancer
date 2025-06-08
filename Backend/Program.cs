@@ -19,20 +19,20 @@ public class Program
         {
             var builder = WebApplication.CreateBuilder(args);
 
-        var loggerConfiguration = new LoggerConfiguration();
-        if (builder.Environment.IsDevelopment())
-        {
-            loggerConfiguration = loggerConfiguration
-                .MinimumLevel.Information()
-                .WriteTo.Console();
-        }
-        else
-        {
-            loggerConfiguration = loggerConfiguration
-                .ReadFrom.Configuration(builder.Configuration)
-                .Enrich.FromLogContext();
-        }
-        var logger = loggerConfiguration.CreateLogger();
+            var loggerConfiguration = new LoggerConfiguration();
+            if (builder.Environment.IsDevelopment())
+            {
+                loggerConfiguration = loggerConfiguration
+                    .MinimumLevel.Information()
+                    .WriteTo.Console();
+            }
+            else
+            {
+                loggerConfiguration = loggerConfiguration
+                    .ReadFrom.Configuration(builder.Configuration)
+                    .Enrich.FromLogContext();
+            }
+            var logger = loggerConfiguration.CreateLogger();
 
             Log.Information("Starting Backend App");
             // Add services to the container.
