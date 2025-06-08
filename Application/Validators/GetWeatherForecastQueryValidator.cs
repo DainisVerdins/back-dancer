@@ -1,7 +1,7 @@
 ﻿using Application.CORS.Queries;
 using FluentValidation;
 
-namespace WebApi.Validators;
+namespace Application.Validators;
 
 public class GetWeatherForecastQueryValidator : AbstractValidator<GetWeatherForecastQuery>
 {
