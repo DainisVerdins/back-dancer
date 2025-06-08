@@ -1,4 +1,4 @@
-﻿namespace WebApi.Models.Dtos;
+﻿namespace Application.Entities.Dtos;
 
 public class WeatherForecastDto
 {

@@ -1,6 +1,6 @@
-﻿using AutoMapper;
+﻿using Application.Entities.Dtos;
+using AutoMapper;
 using Domain.Models;
-using WebApi.Models.Dtos;
 namespace WebApi.MappingProfiles;
 
 public class MappingProfile : Profile

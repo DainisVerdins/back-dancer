@@ -1,9 +1,9 @@
+using Application.CORS.Queries;
+using Application.Entities;
+using Application.Entities.Dtos;
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.CORS.Queries;
-using WebApi.Models;
-using WebApi.Models.Dtos;
 
 namespace WebApi.Controllers;
 

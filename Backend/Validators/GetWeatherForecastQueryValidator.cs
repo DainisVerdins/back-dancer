@@ -1,5 +1,5 @@
-﻿using FluentValidation;
-using WebApi.CORS.Queries;
+﻿using Application.CORS.Queries;
+using FluentValidation;
 
 namespace WebApi.Validators;
 
