@@ -1,5 +1,5 @@
-﻿using Application.Entities.Common;
-using Application.Entities.Dtos;
+﻿using Application.Dtos;
+using Application.Entities.Common;
 using Application.Interfaces;
 using AutoMapper;
 using MediatR;

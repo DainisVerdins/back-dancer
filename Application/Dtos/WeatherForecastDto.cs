@@ -1,4 +1,4 @@
-﻿namespace Application.Entities.Dtos;
+﻿namespace Application.Dtos;
 
 public class WeatherForecastDto
 {

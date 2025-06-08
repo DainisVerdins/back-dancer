@@ -123,29 +123,26 @@ public class UserService : IUserService
             throw new Exception(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
 
         var outputClaims = new List<Claim>() {
-            new(CustomClaimType.UserId, userId.ToString())
+            new(CustomClaimType.UserId, userId.ToString()),
+            new(CustomClaimType.UserName, user.UserName ?? user.Email ?? ""),
+            new(ClaimTypes.Name, user.UserName?? user.Email ?? ""),
+            new(ClaimTypes.Email, user.Email ?? "")
         };
 
         var userClaims = await _userManager.GetClaimsAsync(user);
-
         if (userClaims != null)
             outputClaims.AddRange(userClaims);
 
+        var userRoles = await _roleService.GetRolesForUserAsync(user!);
+
+        var currentUserRole = userRoles?.FirstOrDefault();
+        if (currentUserRole is null)
+            throw new Exception("User does not have role!");
+
         outputClaims.AddRange(
-            new Claim(CustomClaimType.UserName, user.UserName ?? user.Email ?? ""),
-            new Claim(ClaimTypes.Name, user.UserName ?? "")
+            new Claim(CustomClaimType.RoleName, currentUserRole?.Name ?? "UserRole.User"),
+            new Claim(ClaimTypes.Role, currentUserRole?.Name ?? "UserRole.User")
         );
-
-        var userRoles = await _roleService.GetRolesForUserAsync(user);
-
-        if (userRoles != null && userRoles.Count > 0)
-            foreach (var userRole in userRoles)
-            {
-                outputClaims.AddRange(
-                    new Claim(CustomClaimType.RoleName, userRole.Name ?? "user"),
-                    new Claim(ClaimTypes.Role, userRole.Name ?? "user")
-                );
-            }
 
         return outputClaims;
     }
@@ -161,5 +158,117 @@ public class UserService : IUserService
             return null;
 
         return await _userManager.FindByIdAsync(userId.ToString());
+    }
+
+    public async Task<IdentityResult> AddRoleToUserByRoleNameAsync(User user, string roleName)
+    {
+        if (string.IsNullOrEmpty(roleName))
+            throw new ArgumentException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
+
+        if (user is null)
+            throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
+
+        var doesRoleExist = await _roleService.RoleExistsAsync(roleName);
+        if (!doesRoleExist)
+            throw new Exception($"Role with name {roleName} does not exit!");
+
+        return await _userManager.AddToRoleAsync(user, roleName);
+    }
+
+    public async Task<bool> IsLockedOutAsync(User user)
+    {
+        if (user is null)
+            throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
+
+        var appUser = await _userManager.FindByIdAsync(user.Id.ToString());
+        if (appUser is null)
+            throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
+
+        return await _userManager.IsLockedOutAsync(appUser);
+    }
+
+    public async Task IncrementAccessFailedCountAsync(User user)
+    {
+        if (user is null)
+            throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
+
+        var appUser = await _userManager.FindByIdAsync(user.Id.ToString());
+        if (appUser is null)
+            throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
+
+        await _userManager.AccessFailedAsync(appUser);
+    }
+
+    public async Task ResetAccessFailedCountAsync(User user)
+    {
+        if (user is null)
+            throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
+
+        var appUser = await _userManager.FindByIdAsync(user.Id.ToString());
+        if (appUser is null)
+            throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
+
+        await _userManager.ResetAccessFailedCountAsync(appUser);
+    }
+
+
+    public async Task<string> GeneratePasswordResetTokenAsync(User user)
+    {
+        if (user is null)
+            throw new ArgumentNullException(nameof(user), ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
+
+        var appUser = await _userManager.FindByIdAsync(user.Id.ToString());
+
+        if (appUser is null)
+            throw new Exception(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
+
+        return await _userManager.GeneratePasswordResetTokenAsync(appUser);
+    }
+    public async Task UpdateUserAsync(User user)
+    {
+        if (user is null)
+            throw new ArgumentNullException(nameof(user), ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
+
+        var appUser = await _userManager.FindByIdAsync(user.Id.ToString());
+        if (appUser is null)
+            throw new Exception(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
+
+        await _userManager.UpdateAsync(appUser);
+    }
+    public async Task<bool> ResetPasswordAsync(User user, string resetToken, string newPassword)
+    {
+        if (user is null)
+            throw new ArgumentNullException(nameof(user), ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
+
+        if (string.IsNullOrEmpty(resetToken))
+            throw new ArgumentException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty), nameof(resetToken));
+
+        if (string.IsNullOrEmpty(newPassword))
+            throw new ArgumentException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty), nameof(newPassword));
+
+        var appUser = await _userManager.FindByIdAsync(user.Id.ToString());
+        if (appUser is null)
+            throw new Exception(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
+
+        var result = await _userManager.ResetPasswordAsync(appUser, resetToken, newPassword);
+
+        return result.Succeeded;
+    }
+
+    public async Task<IdentityResult> ChangePasswordAsync(User user, string oldPassword, string newPassword)
+    {
+        if (user is null)
+            throw new ArgumentNullException(nameof(user), ErrorMessages.GetArgumentMessage(ArgumentErrorCode.ArgumentIsEmpty));
+
+        if (string.IsNullOrEmpty(oldPassword))
+            throw new ArgumentException(ErrorMessages.GetArgumentMessage(ArgumentErrorCode.ArgumentIsEmpty), nameof(oldPassword));
+
+        if (string.IsNullOrEmpty(newPassword))
+            throw new ArgumentException(ErrorMessages.GetArgumentMessage(ArgumentErrorCode.ArgumentIsEmpty), nameof(newPassword));
+
+        if (string.Equals(oldPassword, newPassword))
+            throw new Exception("new and old password are same");
+
+        return await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
     }
 }

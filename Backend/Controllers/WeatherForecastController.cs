@@ -1,6 +1,6 @@
 using Application.CORS.Queries;
+using Application.Dtos;
 using Application.Entities.Common;
-using Application.Entities.Dtos;
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

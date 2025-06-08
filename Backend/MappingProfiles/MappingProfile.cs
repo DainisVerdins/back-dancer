@@ -1,4 +1,4 @@
-﻿using Application.Entities.Dtos;
+﻿using Application.Dtos;
 using AutoMapper;
 using Domain.Models;
 namespace WebApi.MappingProfiles;
