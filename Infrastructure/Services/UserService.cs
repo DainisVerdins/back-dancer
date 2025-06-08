@@ -1,6 +1,5 @@
 ﻿using Application.Exceptions;
 using Application.Interfaces.Services;
-using AutoMapper;
 using Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -13,15 +12,13 @@ public class UserService : IUserService
 {
 
     private readonly UserManager<User> _userManager;
-    private readonly IMapper _mapper;
     private readonly IRoleService _roleService;
     private readonly IHttpContextAccessor _httpContextAccessor;
     public UserService(
-        UserManager<User> userManager, IMapper mapper,
+        UserManager<User> userManager,
         IRoleService roleService, IHttpContextAccessor httpContextAccessor)
     {
         _userManager = userManager;
-        _mapper = mapper;
         _roleService = roleService;
         _httpContextAccessor = httpContextAccessor;
     }
@@ -33,11 +30,7 @@ public class UserService : IUserService
         if (user is null)
             throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
 
-        var appUser = await _userManager.FindByNameAsync(user.UserName);
-        if (appUser is null)
-            return false;
-
-        return await _userManager.CheckPasswordAsync(appUser, password);
+        return await _userManager.CheckPasswordAsync(user, password);
     }
 
     public async Task<bool> CreateUserAsync(User userToCreate, string password)
@@ -45,11 +38,13 @@ public class UserService : IUserService
         if (string.IsNullOrEmpty(password))
             throw new ArgumentException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
 
-        if (await _userManager.FindByNameAsync(userToCreate.UserName) != null)
+        if (await _userManager.FindByNameAsync(userToCreate?.UserName ?? "") != null)
             return true;
 
-        var appUserToAdd = new User { Email = userToCreate.Email, UserName = userToCreate.UserName };
-        var result = await _userManager.CreateAsync(appUserToAdd, password);
+
+        if (userToCreate is null)
+            throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
+        var result = await _userManager.CreateAsync(userToCreate, password);
 
         return result.Succeeded == true;
     }
@@ -61,23 +56,17 @@ public class UserService : IUserService
 
         var appUser = await _userManager.FindByEmailAsync(email);
 
-        if (appUser is null)
-            return null;
-
-        return _mapper.Map<User>(appUser);
+        return appUser;
     }
 
-    public async Task<User?> GetUserByIdAsync(Guid id)
+    public async Task<User?> GetUserByIdAsync(int userId)
     {
-        if (id == default)
+        if (userId < 1)
             throw new ArgumentException("id value can not default guid value");
 
-        var appUser = await _userManager.FindByIdAsync(id.ToString());
+        var appUser = await _userManager.FindByIdAsync(userId.ToString());
 
-        if (appUser is null)
-            return null;
-
-        return _mapper.Map<User>(appUser);
+        return appUser;
     }
 
     public async Task<User?> GetUserByUserNameAsync(string userName)
@@ -85,12 +74,7 @@ public class UserService : IUserService
         if (string.IsNullOrEmpty(userName))
             throw new ArgumentException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
 
-        var appUser = await _userManager.FindByNameAsync(userName);
-
-        if (appUser is null)
-            return null;
-
-        return _mapper.Map<User>(appUser);
+        return await _userManager.FindByNameAsync(userName);
     }
 
     public async Task<IList<Claim>> GetUserClaims(User user)
@@ -98,9 +82,7 @@ public class UserService : IUserService
         if (user is null)
             throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
 
-        var appUser = _mapper.Map<User>(user);
-
-        return await _userManager.GetClaimsAsync(appUser);
+        return await _userManager.GetClaimsAsync(user);
     }
 
     public async Task<bool> UserExistsAsync(string userName)
@@ -125,7 +107,7 @@ public class UserService : IUserService
         if (!doesRoleExist)
             throw new Exception($"Role with name {roleName} does not exit!");
 
-        var appUser = await _userManager.FindByNameAsync(user.UserName);
+        var appUser = await _userManager.FindByNameAsync(user.UserName ?? "");
 
         if (appUser is null)
             return;
@@ -133,26 +115,25 @@ public class UserService : IUserService
         await _userManager.AddToRoleAsync(appUser, roleName);
     }
 
-    public async Task<IList<Claim>> GetClaimsForAccessTokenByUserIdAsync(Guid userId)
+    public async Task<IList<Claim>> GetClaimsForAccessTokenByUserIdAsync(int userId)
     {
-        var appUser = await _userManager.FindByIdAsync(userId.ToString());
+        var user = await _userManager.FindByIdAsync(userId.ToString());
 
-        if (appUser is null)
+        if (user is null)
             throw new Exception(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
 
         var outputClaims = new List<Claim>() {
             new(CustomClaimType.UserId, userId.ToString())
         };
 
-        var userClaims = await _userManager.GetClaimsAsync(appUser);
+        var userClaims = await _userManager.GetClaimsAsync(user);
 
         if (userClaims != null)
             outputClaims.AddRange(userClaims);
 
-        var user = _mapper.Map<User>(appUser);
         outputClaims.AddRange(
-            new Claim(CustomClaimType.UserName, user.UserName),
-            new Claim(ClaimTypes.Name, user.UserName)
+            new Claim(CustomClaimType.UserName, user.UserName ?? user.Email ?? ""),
+            new Claim(ClaimTypes.Name, user.UserName ?? "")
         );
 
         var userRoles = await _roleService.GetRolesForUserAsync(user);
@@ -161,8 +142,8 @@ public class UserService : IUserService
             foreach (var userRole in userRoles)
             {
                 outputClaims.AddRange(
-                    new Claim(CustomClaimType.RoleName, userRole.Name),
-                    new Claim(ClaimTypes.Role, userRole.Name)
+                    new Claim(CustomClaimType.RoleName, userRole.Name ?? "user"),
+                    new Claim(ClaimTypes.Role, userRole.Name ?? "user")
                 );
             }
 
@@ -179,10 +160,6 @@ public class UserService : IUserService
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             return null;
 
-        var appUser = await _userManager.FindByIdAsync(userId.ToString());
-        if (appUser is null)
-            return null;
-
-        return _mapper.Map<User>(appUser);
+        return await _userManager.FindByIdAsync(userId.ToString());
     }
 }
