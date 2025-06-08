@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Application.Entities;
+namespace Application.Entities.Common;
 
 public class BaseResponse<T>
 {

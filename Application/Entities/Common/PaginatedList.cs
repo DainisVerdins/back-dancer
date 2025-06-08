@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Application.Entities;
+namespace Application.Entities.Common;
 public class PaginatedList<T>
 {
     public List<T> Items { get; }

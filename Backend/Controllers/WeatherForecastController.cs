@@ -1,5 +1,5 @@
 using Application.CORS.Queries;
-using Application.Entities;
+using Application.Entities.Common;
 using Application.Entities.Dtos;
 using Asp.Versioning;
 using MediatR;

@@ -1,4 +1,4 @@
-﻿using Application.Entities;
+﻿using Application.Entities.Common;
 using Application.Entities.Dtos;
 using Application.Interfaces;
 using AutoMapper;
