@@ -1,5 +1,4 @@
-﻿using Application.MappingProfiles;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
@@ -13,9 +12,7 @@ public static class DependencyInjection
         services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(assembly));
 
         services.AddValidatorsFromAssembly(assembly);
-
-        // TODO:  need to figure out, if mapping should be here or in presentation layer
-        services.AddAutoMapper(new[] { typeof(WeatherForecastMappingProfile).Assembly });
+        services.AddAutoMapper(typeof(Program).Assembly);
 
         return services;
     }

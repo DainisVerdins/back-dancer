@@ -10,5 +10,8 @@ public enum ErrorCode
     OperationFailed,
     NotFound,
     RefreshTokenInCookieNotFound,
-    InvalidPassword
+    InvalidPassword,
+    UserBlocked,
+    EmailLinkExpired,
+    FileDoesNotExist
 }

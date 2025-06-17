@@ -5,8 +5,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace WebApi.Configuration;
 
-public class ConfigureSwaggerOptions
-    : IConfigureNamedOptions<SwaggerGenOptions>
+public class ConfigureSwaggerOptions : IConfigureNamedOptions<SwaggerGenOptions>
 {
     private readonly IApiVersionDescriptionProvider _provider;
 
@@ -22,12 +21,38 @@ public class ConfigureSwaggerOptions
     /// <param name="options"></param>
     public void Configure(SwaggerGenOptions options)
     {
+        var securityScheme = new OpenApiSecurityScheme
+        {
+            Name = "JWT Authentication",
+            Description = "Enter your JWT token in this field",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT"
+        };
+
         // add swagger document for every API version discovered
         foreach (var description in _provider.ApiVersionDescriptions)
         {
             options.SwaggerDoc(
                 description.GroupName,
                 CreateVersionInfo(description));
+
+            options.AddSecurityDefinition("Bearer", securityScheme);
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
         }
     }
 
@@ -46,12 +71,12 @@ public class ConfigureSwaggerOptions
     /// </summary>
     /// <param name="desc"></param>
     /// <returns>Information about the API</returns>
-    private static OpenApiInfo CreateVersionInfo(
+    private OpenApiInfo CreateVersionInfo(
             ApiVersionDescription desc)
     {
         var info = new OpenApiInfo()
         {
-            Title = ".NET Core (.NET 8) Web API Back-end dancer",
+            Title = ".NET Core (.NET 9) web api Backend",
             Version = desc.ApiVersion.ToString()
         };
 

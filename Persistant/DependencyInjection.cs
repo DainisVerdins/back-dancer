@@ -1,9 +1,9 @@
 ﻿using Application.Interfaces;
+using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence.Data;
-using Persistence.Identity.Models;
 namespace Persistence;
 
 public static class DependencyInjection
@@ -15,7 +15,7 @@ public static class DependencyInjection
 
         services.AddScoped<IUnitOfWork, UnitOfWork.UnitOfWork>();
 
-        services.AddIdentityCore<AppUser>(options =>
+        services.AddIdentityCore<User>(options =>
         {
             options.Password.RequireDigit = true;
             options.Password.RequiredLength = 8;
@@ -23,7 +23,7 @@ public static class DependencyInjection
             options.Password.RequireUppercase = true;
             options.Password.RequireLowercase = false;
         })
-           .AddRoles<AppRole>()
+           .AddRoles<Role>()
            .AddEntityFrameworkStores<DataContext>();
 
         return services;
