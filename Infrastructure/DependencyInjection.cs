@@ -29,6 +29,7 @@ public static class DependencyInjection
 
 
         /* Persistance */
+        services.AddScoped<DatabaseInitializer>();
         services.AddDbContext<DataContext>(options =>
                options.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
 
@@ -44,6 +45,8 @@ public static class DependencyInjection
         })
            .AddRoles<Role>()
            .AddEntityFrameworkStores<DataContext>();
+
+        services.Configure<InitialUserSettings>(configuration.GetSection("InitialUserCredentials"));
 
         return services;
     }

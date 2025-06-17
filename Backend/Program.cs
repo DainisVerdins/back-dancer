@@ -1,5 +1,4 @@
-
-namespace Web;
+namespace WebApi;
 using Application;
 using Application.Entities.Common;
 using Asp.Versioning;
