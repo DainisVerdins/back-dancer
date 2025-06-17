@@ -51,7 +51,6 @@ public class Program
 
             // project dependencies in Clean Architecture pattern
             builder.Services
-                .AddPersistence(builder.Configuration)
                 .AddApplication()
                 .AddInfrastructure(builder.Configuration);
 
