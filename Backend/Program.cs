@@ -18,6 +18,7 @@ using System.Reflection;
 using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using WebApi.Configuration;
+using SQLitePCL;
 
 public class Program
 {
@@ -47,6 +48,10 @@ public class Program
             // https://www.claudiobernasconi.ch/2022/01/28/how-to-use-serilog-in-asp-net-core-web-api/ for precise logging
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog(logger);
+
+
+            // Initialize SQLitePCL
+            Batteries.Init();
 
             // project dependencies in Clean Architecture pattern
             builder.Services
