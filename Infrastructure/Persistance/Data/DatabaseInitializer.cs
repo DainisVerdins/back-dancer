@@ -8,9 +8,6 @@ using Microsoft.Extensions.Options;
 namespace Infrastructure.Persistance.Data;
 
 
-// TODO IMPLEMENT DEFAULT INITIALIZER
-// MOVE SETTINGS TO APPSETINGS.JSON
-// BETTER NAMING FOR USER ROLES MAYBE ADDING NEW CODE FOR ROLE
 public class DatabaseInitializer
 {
     private readonly ILogger<DatabaseInitializer> _logger;

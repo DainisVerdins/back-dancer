@@ -12,11 +12,9 @@ public class UnitOfWork : IUnitOfWork
     {
         _context = context;
         RefreshTokens = new RefreshTokenRepository(_context);
-        WeatherForecasts = new WeatherForecastRepository(_context);
     }
 
     public IRefreshTokenRepository RefreshTokens { get; private set; }
-    public IWeatherForecastRepository WeatherForecasts { get; private set; }
 
     public int SaveChanges()
     {

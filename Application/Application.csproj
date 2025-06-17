@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="CORS\Queries\" />
     <Folder Include="Middleware\" />
   </ItemGroup>
 

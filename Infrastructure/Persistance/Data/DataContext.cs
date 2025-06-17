@@ -13,6 +13,5 @@ public class DataContext : IdentityDbContext<User, Role, int>
     {
         base.OnModelCreating(builder);
     }
-    public DbSet<WeatherForecast> WeatherForecasts { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 }
