@@ -19,6 +19,7 @@ using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using WebApi.Configuration;
 using SQLitePCL;
+using Infrastructure.Persistance.Data;
 
 public class Program
 {
@@ -139,11 +140,11 @@ public class Program
             var app = builder.Build();
 
 
-            //using (var scope = app.Services.CreateScope())
-            //{
-            //    var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
-            //    await initializer.InitializeAsync();
-            //}
+            using (var scope = app.Services.CreateScope())
+            {
+                var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
+                await initializer.InitializeAsync();
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
