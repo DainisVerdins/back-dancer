@@ -30,7 +30,7 @@ public static class DependencyInjection
 
         /* Persistance */
         services.AddDbContext<DataContext>(options =>
-               options.UseSqlite(configuration.GetConnectionString("DefaultConnection"), db => db.MigrationsAssembly(typeof(DataContext).Assembly.FullName)));
+               options.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
