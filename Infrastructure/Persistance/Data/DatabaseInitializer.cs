@@ -1,5 +1,6 @@
-﻿using Application.Interfaces.Services;
-using Domain.Constants;
+﻿using Application.Constants;
+using Application.Interfaces;
+using Application.Interfaces.Services;
 using Domain.Models;
 using Infrastructure.Settings;
 using Microsoft.Extensions.Logging;
@@ -7,25 +8,30 @@ using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Persistance.Data;
 
-
 public class DatabaseInitializer
 {
     private readonly ILogger<DatabaseInitializer> _logger;
     private readonly InitialUserSettings _initialUserSettings;
     private readonly IUserService _userService;
     private readonly IRoleService _roleService;
+    private readonly DefaultOrganizationSettings _defaultOrganizationrSettings;
+    private readonly IUnitOfWork _unitOfWork;
 
     public DatabaseInitializer(
         IUserService userService,
         IRoleService roleService,
         ILogger<DatabaseInitializer> logger,
-        IOptions<InitialUserSettings> initialUserSettingsOptions
+        IOptions<InitialUserSettings> initialUserSettingsOptions,
+        IOptions<DefaultOrganizationSettings> defaultOrganizationOptions,
+        IUnitOfWork unitOfWork
         )
     {
         _roleService = roleService;
         _userService = userService;
         _logger = logger;
         _initialUserSettings = initialUserSettingsOptions.Value;
+        _defaultOrganizationrSettings = defaultOrganizationOptions.Value;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task InitializeAsync()
@@ -36,25 +42,26 @@ public class DatabaseInitializer
 
     private async Task SeedRolesAsync()
     {
-        foreach (var roleName in UserRoleName.GetRoleNames())
+        foreach (var roleName in UserRole.GetRoleNames())
             if (!await _roleService.RoleExistsAsync(roleName))
                 await _roleService.CreateRoleAsync(new Role { Name = roleName });
     }
 
     private async Task SeedInitialUsersAsync()
     {
-        if (await _userService.UserExistsAsync(_initialUserSettings.UserName))
-            return;
-
-        var initialAdmin = new User
+        if (!await _userService.UserExistsAsync(_initialUserSettings.UserName))
         {
-            Email = _initialUserSettings.Email,
-            UserName = _initialUserSettings.Email
-        };
+            var initialAdmin = new User
+            {
+                Email = _initialUserSettings.Email,
+                UserName = _initialUserSettings.UserName
+            };
 
-        var isOk = await _userService.CreateUserAsync(initialAdmin, _initialUserSettings.Password);
-        if (isOk)
-            await _userService.AddRoleToUserByRoleNameAsync(initialAdmin, UserRoleName.Admin);
+            var isOk = await _userService.CreateUserAsync(initialAdmin, _initialUserSettings.Password);
+            await _unitOfWork.SaveChangesAsync();
 
+            if (isOk)
+                await _userService.AddRoleToUserByRoleNameAsync(initialAdmin, UserRole.Admin);
+        }
     }
 }
