@@ -3,7 +3,9 @@ using Application;
 using Application.Entities.Common;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using FluentValidation;
 using Infrastructure;
+using Infrastructure.Persistance.Data;
 using Infrastructure.Settings;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,14 +13,15 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using SQLitePCL;
 using System;
 using System.Net;
 using System.Reflection;
 using System.Threading.RateLimiting;
 using System.Threading.Tasks;
+using WebApi.Behaviors;
 using WebApi.Configuration;
-using SQLitePCL;
-using Infrastructure.Persistance.Data;
+using WebApi.Middleware;
 
 public class Program
 {
@@ -136,6 +139,11 @@ public class Program
                     opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
                 });
             });
+
+            // add fluent validators
+            builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+            builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
             var app = builder.Build();
 
 
@@ -165,6 +173,7 @@ public class Program
                 });
             }
 
+            app.UseMiddleware<ExceptionMiddleware>();
             app.UseCors("FrontendPolicy");
             app.UseAuthentication();
             app.UseAuthorization();
