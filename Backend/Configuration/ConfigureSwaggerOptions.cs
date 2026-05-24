@@ -1,6 +1,6 @@
 ﻿using Asp.Versioning.ApiExplorer;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace WebApi.Configuration;
@@ -39,20 +39,19 @@ public class ConfigureSwaggerOptions : IConfigureNamedOptions<SwaggerGenOptions>
                 CreateVersionInfo(description));
 
             options.AddSecurityDefinition("Bearer", securityScheme);
-            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+
+            // .NET 10 / Microsoft.OpenApi v2 Type-Safe Implementation:
+            options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+        {
             {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    Array.Empty<string>()
-                }
-            });
+                // Directly pass the reference class as the dictionary key!
+                // We supply the reference ID ("Bearer") and the current 'document' instance.
+                new OpenApiSecuritySchemeReference("Bearer", document), 
+                
+                // Matches the required List<string> value signature
+                new List<string>()
+            }
+        });
         }
     }
 
