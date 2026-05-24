@@ -12,7 +12,10 @@ public static class DependencyInjection
         services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(assembly));
 
         services.AddValidatorsFromAssembly(assembly);
-        services.AddAutoMapper(typeof(Program).Assembly);
+        services.AddAutoMapper(cfg =>
+        {
+            cfg.LicenseKey = "eyJhbGciOiJSUzI1NiIsImtpZCI6Ikx1Y2t5UGVubnlTb2Z0d2FyZUxpY2Vuc2VLZXkvYmJiMTNhY2I1OTkwNGQ4OWI0Y2IxYzg1ZjA4OGNjZjkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2x1Y2t5cGVubnlzb2Z0d2FyZS5jb20iLCJhdWQiOiJMdWNreVBlbm55U29mdHdhcmUiLCJleHAiOiIxODExMTE2ODAwIiwiaWF0IjoiMTc3OTY0MjYzMCIsImFjY291bnRfaWQiOiIwMTllNWFmNzBmNDE3MzBiYmU3N2YxZTFjZjQ5ZDI1ZSIsImN1c3RvbWVyX2lkIjoiY3RtXzAxa3NkZmYwZjlkcmNqcWI3OTJrczNoamI4Iiwic3ViX2lkIjoiLSIsImVkaXRpb24iOiIwIiwidHlwZSI6IjIifQ.PaH0n-yHuCJGauhVbZOGSbo3ZPvLT89l9Ibn6hSWNY5sTDmCKL5CDZDoaxUUpBMgOlHoog2kFl7a6CivY9-rl6lva4dD5I5W5qHkaJRFEYbe5MNJi6Abe9Wl_sRCVnBH3k7-ln9RQntBaYvqFBjCo1V_vQFeAicRlCibzWm9NgoqNx8MZ8SKB2lK8TCVIb_G0kr0jUz3BfXn4V1t5fPEWvZvPiQFDUXctaAyKjq7b6KxrVqQTYRV-vSAq2MnypaaCi_b5IMzQ0xGEV2WksT0rerl0UrBtZEVeKtAyh_d7eQYLWcsj_VhVw38V8ZVsJb7h8MoPW4ZPUiPHZE8o5tGuQ";
+        }, assembly);
 
         return services;
     }
