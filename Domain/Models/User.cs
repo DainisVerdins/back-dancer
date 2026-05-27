@@ -4,4 +4,5 @@ namespace Domain.Models;
 
 public class User : IdentityUser<int>
 {
+    public bool RequirePasswordChange { get; set; } = false;
 }
