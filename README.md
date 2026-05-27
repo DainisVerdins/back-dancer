@@ -1,25 +1,32 @@
 # Describe
-Back end project using web.api and C# this project is dedicated as template along side front-dancer for FE. For my future projects.
-Inspiration src was [this repo](https://github.com/mohamedelareeg/CleanArchitecture/tree/master)
 
+Animal Shelter project's BE part.
+FE part of the project [could be found here](https://github.com/DainVerd/animal-shelter-fe)
 
 - [Describe](#describe)
 - [How to launch project](#how-to-launch-project)
-    -[Preconditions for project to launch](#preconditions-for-project-to-launch)
-- [Project Architecture](#how-to-apply-migrations)
+- [Project Architecture](#project-architecture)
+- [Tech stack](#tech-stack)
 
+## How to launch project
 
-# How to launch project
 This section is dedicated for storing information about how to launch project for development.
 
-## Preconditions for project to launch
-WIP
+1. clone the repository
+2. open project in visual studio
+3. Select Web.api as start project
+4. Apply DB migrations by exe command in package manager console
 
+    ```bash
+    dotnet ef database update --project Infrastructure --startup-project Backend
+    ```
 
-# How to apply migrations
-WIP
+5. launch project by pressing `Ctrl + F5`
 
-# Project Architecture
+## Project Architecture
+
+Inspiration src was [this repo](https://github.com/mohamedelareeg/CleanArchitecture/tree/master)
+
 1. CleanArchitecture.Domain
 The heart of the application, CleanArchitecture.Domain, holds the domain entities and business logic. It represents the core of your application and remains independent of any external frameworks.
 
@@ -37,3 +44,16 @@ The CleanArchitecture.Persistence project deals with data storage and retrieval,
 
 6. CleanArchitecture.Api
 CleanArchitecture.Api serves as the entry point for the Web API application. It utilizes the Clean Architecture principles to handle incoming HTTP requests and coordinate actions across different layers.
+
+## Tech stack
+
+- ASP.NET(web.api)
+- C#
+- EF Core
+- SQLite as DB
+
+Unit tests:
+
+- awesomeAssertions
+- xUnit
+- Moq
