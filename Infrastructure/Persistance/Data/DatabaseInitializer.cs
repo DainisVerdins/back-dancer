@@ -54,7 +54,8 @@ public class DatabaseInitializer
             var initialAdmin = new User
             {
                 Email = _initialUserSettings.Email,
-                UserName = _initialUserSettings.UserName
+                UserName = _initialUserSettings.UserName,
+                RequirePasswordChange = true
             };
 
             var isOk = await _userService.CreateUserAsync(initialAdmin, _initialUserSettings.Password);

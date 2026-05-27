@@ -173,11 +173,23 @@ public class Program
                 });
             }
 
+            
+            app.UseHttpsRedirection();
+            app.UseHsts();
+            // security headers
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+                context.Response.Headers.Append("X-Frame-Options", "DENY");
+                context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+                context.Response.Headers.Append("Referrer-Policy", "no-referrer");
+                await next();
+            });
             app.UseMiddleware<ExceptionMiddleware>();
             app.UseCors("FrontendPolicy");
+            app.UseRateLimiter();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseHttpsRedirection();
             app.MapControllers();
 
             app.Run();
