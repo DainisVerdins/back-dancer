@@ -12,9 +12,9 @@ public class PasswordServiceTests
 
     private PasswordService CreateSut(IList<IPasswordValidator<User>> validators)
     {
-        var fakeUserManager = new FakeUserManager(validators);
+        var userManagerMock = IdentityMockFactory.CreateUserManager(passwordValidators: validators);
 
-        return new PasswordService(fakeUserManager);
+        return new PasswordService(userManagerMock.Object);
     }
 
     #region ValidatePasswordAsync tests

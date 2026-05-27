@@ -38,7 +38,7 @@ public class RoleService : IRoleService
     public async Task<IList<Role>> GetRolesForUserAsync(User user)
     {
         if (user is null)
-            throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty), nameof(user));
+            throw new ArgumentNullException(nameof(user), ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
 
         var appUser = await _userManager.FindByIdAsync(user.Id.ToString());
         if (appUser == null)
@@ -59,8 +59,9 @@ public class RoleService : IRoleService
     {
         if (string.IsNullOrEmpty(roleName))
             throw new ArgumentException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty), nameof(roleName));
+
         if (user is null)
-            throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty), nameof(user));
+            throw new ArgumentNullException(nameof(user), ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
 
         var appUser = _mapper.Map<User>(user);
 
