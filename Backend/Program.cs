@@ -87,10 +87,10 @@ public class Program
 
             builder.Services.AddCors(options =>
             {
-                var allowedCordsOrigins = builder.Configuration.GetSection("AllowedCorsOrigins").Value;
-                allowedCordsOrigins ??= "http://localhost:5173";
+                var allowedCordsOrigins = builder.Configuration.GetSection("AllowedCorsOrigins").Get<string[]>();
+                allowedCordsOrigins ??= ["http://localhost:5000"];
                 options.AddPolicy("FrontendPolicy", builder => builder
-                                   .WithOrigins(allowedCordsOrigins.Split(","))
+                                   .WithOrigins(allowedCordsOrigins)
                                    .AllowAnyHeader()
                                    .AllowAnyMethod()
                                    .AllowCredentials());
