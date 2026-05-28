@@ -62,7 +62,7 @@ public class UserService : IUserService
     public async Task<User?> GetUserByIdAsync(int userId)
     {
         if (userId < 1)
-            throw new ArgumentException("id value can not default guid value");
+            throw new ArgumentException("id value cannot be less than 1", nameof(userId));
 
         var appUser = await _userManager.FindByIdAsync(userId.ToString());
 
@@ -154,7 +154,7 @@ public class UserService : IUserService
             return null;
 
         var userIdClaim = principal.FindFirst(CustomClaimType.UserId)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             return null;
 
         return await _userManager.FindByIdAsync(userId.ToString());
