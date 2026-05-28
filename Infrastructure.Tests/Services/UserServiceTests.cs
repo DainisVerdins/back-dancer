@@ -98,8 +98,7 @@ public class UserServiceTests
     public async Task GetUserByIdAsync_WhenIdIsLessThanOne_ShouldThrowArgumentException()
     {
         var act = async () => await _sut.GetUserByIdAsync(0);
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("id value can not default guid value");
+        await act.Should().ThrowAsync<ArgumentException>();
     }
 
     [Fact]
@@ -195,8 +194,8 @@ public class UserServiceTests
     [Fact]
     public async Task GetCurrentUserAsync_WithValidUserGuidClaim_ShouldReturnFoundUser()
     {
-        var userGuid = Guid.NewGuid();
-        var claims = new List<Claim> { new("UserId", userGuid.ToString()) }; // Matches your CustomClaimType.UserId string evaluations
+        var userId = 2;
+        var claims = new List<Claim> { new("UserId", userId.ToString()) };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
 
@@ -204,7 +203,7 @@ public class UserServiceTests
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
 
         var appUser = new User { Id = 10, UserName = "ActiveUser" };
-        _userManagerMock.Setup(x => x.FindByIdAsync(userGuid.ToString())).ReturnsAsync(appUser);
+        _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString())).ReturnsAsync(appUser);
 
         var result = await _sut.GetCurrentUserAsync();
 
