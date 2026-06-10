@@ -184,7 +184,7 @@ public class UserServiceTests
     [Fact]
     public async Task GetCurrentUserAsync_WhenHttpContextHasNoUser_ShouldReturnNull()
     {
-        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext?)null);
+        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext?)null!);
 
         var result = await _sut.GetCurrentUserAsync();
 

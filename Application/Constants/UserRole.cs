@@ -2,12 +2,13 @@
 
 public static class UserRole
 {
+    public const string SuperAdmin = "SuperAdmin";
     public const string Admin = "Admin";
+    public const string ShelterWorker = "ShelterWorker";
     public const string User = "User";
-    public const string Manager = "Manager";
-    public const string Guest = "Guest";
+
     public static IEnumerable<string> GetRoleNames()
     {
-        return [Admin, User, Manager, Guest];
+        return [SuperAdmin, Admin, ShelterWorker, User];
     }
 }
