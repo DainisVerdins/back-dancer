@@ -1,4 +1,5 @@
-﻿using Application.CORS.Queries;
+﻿using Application.Constants;
+using Application.CORS.Queries;
 using Application.Dtos;
 using Application.Entities.Common;
 using Asp.Versioning;
