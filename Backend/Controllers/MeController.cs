@@ -1,6 +1,8 @@
 ﻿using Application.Constants;
+using Application.CORS.Commands;
 using Application.CORS.Queries;
 using Application.Dtos;
+using Application.Entities;
 using Application.Entities.Common;
 using Asp.Versioning;
 using Infrastructure.Persistance.Identity.Constants;
@@ -33,7 +35,7 @@ public class MeController : Controller
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetAvailableRoles()
     {
-        var userId = User.FindFirstValue(CustomClaimType.UserId);
+        var userId = User.FindFirstValue(Application.Constants.CustomClaimType.UserId);
 
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
@@ -46,5 +48,25 @@ public class MeController : Controller
         var result = await _mediator.Send(query);
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Returns token containing new claims for auth and authorized user with desired role
+    /// </summary>
+    /// <param name="roleCode"></param>
+    /// <returns></returns>
+    [HttpPost("select-role")]
+    [ProducesResponseType(typeof(BaseResponse<TokenResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SelectRole([FromBody] string roleCode)
+    {
+        var command = new SelectUserRoleCommand{ RoleCode = roleCode };
+        var response = await _mediator.Send(command);
+
+        if (!response.IsSuccess)
+            return StatusCode((int)response.StatusCode, response);
+
+        return Ok(response);
     }
 }
