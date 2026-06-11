@@ -1,11 +1,9 @@
-﻿using Application.Constants;
-using Application.CORS.Commands;
+﻿using Application.CORS.Commands;
 using Application.CORS.Queries;
 using Application.Dtos;
 using Application.Entities;
 using Application.Entities.Common;
 using Asp.Versioning;
-using Infrastructure.Persistance.Identity.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -61,8 +59,26 @@ public class MeController : Controller
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SelectRole([FromBody] string roleCode)
     {
-        var command = new SelectUserRoleCommand{ RoleCode = roleCode };
+        var command = new SelectUserRoleCommand { RoleCode = roleCode };
         var response = await _mediator.Send(command);
+
+        if (!response.IsSuccess)
+            return StatusCode((int)response.StatusCode, response);
+
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Returns current user information
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns>User Profile</returns>
+    [HttpGet("profile")]
+    [ProducesResponseType(typeof(BaseResponse<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetProfile(CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(new GetCurrentUserQuery(), cancellationToken);
 
         if (!response.IsSuccess)
             return StatusCode((int)response.StatusCode, response);
