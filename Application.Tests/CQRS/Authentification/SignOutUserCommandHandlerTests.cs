@@ -38,7 +38,7 @@ public class SignOutUserCommandHandlerTests
     public async Task Handle_WhenUserIsNotAuthenticated_ShouldReturnNotFound()
     {
         // Arrange
-        _userServiceMock.Setup(x => x.GetCurrentUserAsync()).ReturnsAsync((User?)null);
+        _userServiceMock.Setup(x => x.GetCurrentUserAsync()).ReturnsAsync((Domain.Models.User?)null);
 
         // Act
         var result = await _sut.Handle(new SignOutUserCommand(), CancellationToken.None);
@@ -56,7 +56,7 @@ public class SignOutUserCommandHandlerTests
     public async Task Handle_WhenUserHasActiveTokens_ShouldRevokeAllActiveTokensAndReturnOk()
     {
         // Arrange
-        var user = new User { Id = 123, UserName = "CourlandCreator" };
+        var user = new Domain.Models.User { Id = 123, UserName = "CourlandCreator" };
         _userServiceMock.Setup(x => x.GetCurrentUserAsync()).ReturnsAsync(user);
 
         // Prepare active tokens that belong to the user
@@ -89,7 +89,7 @@ public class SignOutUserCommandHandlerTests
     public async Task Handle_WhenUserHasNoActiveTokens_ShouldStillSaveAndReturnOk()
     {
         // Arrange
-        var user = new User { Id = 456, UserName = "EmptyTokenUser" };
+        var user = new Domain.Models.User { Id = 456, UserName = "EmptyTokenUser" };
         _userServiceMock.Setup(x => x.GetCurrentUserAsync()).ReturnsAsync(user);
 
         // Return empty list if no active token matching constraints exist

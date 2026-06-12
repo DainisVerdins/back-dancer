@@ -71,7 +71,7 @@ public class SignInUserCommandHandlerTests
         // Arrange
         var command = CreateCommand();
         _userServiceMock.Setup(x => x.GetUserByEmailAsync(command.Model.Email))
-            .ReturnsAsync((User?)null);
+            .ReturnsAsync((Domain.Models.User?)null);
 
         // Act
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -86,7 +86,7 @@ public class SignInUserCommandHandlerTests
     {
         // Arrange
         var command = CreateCommand();
-        var user = new User { Id = 1, Email = command.Model.Email };
+        var user = new Domain.Models.User { Id = 1, Email = command.Model.Email };
 
         _userServiceMock.Setup(x => x.GetUserByEmailAsync(command.Model.Email)).ReturnsAsync(user);
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext?)null!);
@@ -103,7 +103,7 @@ public class SignInUserCommandHandlerTests
     {
         // Arrange
         var command = CreateCommand();
-        var user = new User { Id = 1, Email = command.Model.Email };
+        var user = new Domain.Models.User { Id = 1, Email = command.Model.Email };
 
         _userServiceMock.Setup(x => x.GetUserByEmailAsync(command.Model.Email)).ReturnsAsync(user);
         _userServiceMock.Setup(x => x.IsLockedOutAsync(user)).ReturnsAsync(true);
@@ -130,7 +130,7 @@ public class SignInUserCommandHandlerTests
     {
         // Arrange
         var command = CreateCommand();
-        var user = new User { Id = 1, Email = command.Model.Email };
+        var user = new Domain.Models.User { Id = 1, Email = command.Model.Email };
 
         _userServiceMock.Setup(x => x.GetUserByEmailAsync(command.Model.Email)).ReturnsAsync(user);
         _userServiceMock.Setup(x => x.IsLockedOutAsync(user)).ReturnsAsync(false);
@@ -154,7 +154,7 @@ public class SignInUserCommandHandlerTests
     {
         // Arrange
         var command = CreateCommand();
-        var user = new User { Id = 42, Email = command.Model.Email };
+        var user = new Domain.Models.User { Id = 42, Email = command.Model.Email };
         var claims = new List<Claim> { new(ClaimTypes.Email, user.Email) };
 
         _userServiceMock.Setup(x => x.GetUserByEmailAsync(command.Model.Email)).ReturnsAsync(user);
