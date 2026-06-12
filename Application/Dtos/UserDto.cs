@@ -4,5 +4,6 @@ public class UserDto
 {
     public int Id { get; set; }
     public string Email { get; set; } = string.Empty;
-    public List<string> RoleNames { get; set; } = [];
+    public string ActiveRole { get; set; } = string.Empty;
+    public string UserName { get; set; } = string.Empty;
 }

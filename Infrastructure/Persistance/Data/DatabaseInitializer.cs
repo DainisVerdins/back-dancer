@@ -44,7 +44,7 @@ public class DatabaseInitializer
     {
         foreach (var roleName in UserRole.GetRoleNames())
             if (!await _roleService.RoleExistsAsync(roleName))
-                await _roleService.CreateRoleAsync(new Role { Name = roleName });
+                await _roleService.CreateRoleAsync(new Role { Name = roleName, RoleCode = roleName });
     }
 
     private async Task SeedInitialUsersAsync()
@@ -62,7 +62,7 @@ public class DatabaseInitializer
             await _unitOfWork.SaveChangesAsync();
 
             if (isOk)
-                await _userService.AddRoleToUserByRoleNameAsync(initialAdmin, UserRole.Admin);
+                await _userService.AddRoleToUserByRoleNameAsync(initialAdmin, UserRole.SuperAdmin);
         }
     }
 }

@@ -65,14 +65,4 @@ public class UserController : Controller
 
     //    return StatusCode((int)response.StatusCode, response);
     //}
-
-    //[HttpGet("current")]
-    //[ProducesResponseType(typeof(BaseResponse<CurrentUserDto>), StatusCodes.Status200OK)]
-    //[ProducesResponseType(StatusCodes.Status410Gone)]
-    //public async Task<IActionResult> GetCurrentUserInformation(CancellationToken cancellationToken)
-    //{
-    //    var response = await _mediator.Send(new GetCurrentUserInformationQuery(), cancellationToken);
-
-    //    return StatusCode((int)response.StatusCode, response);
-    //}
 }
