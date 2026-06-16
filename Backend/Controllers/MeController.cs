@@ -3,6 +3,7 @@ using Application.CORS.Queries;
 using Application.Dtos;
 using Application.Entities;
 using Application.Entities.Common;
+using Application.ViewModels;
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -51,15 +52,16 @@ public class MeController : Controller
     /// <summary>
     /// Returns token containing new claims for auth and authorized user with desired role
     /// </summary>
-    /// <param name="roleCode"></param>
+    /// <param name="model"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost("select-role")]
     [ProducesResponseType(typeof(BaseResponse<TokenResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> SelectRole([FromBody] string roleCode)
+    public async Task<IActionResult> SelectRole([FromBody] SelectRoleViewModel model, CancellationToken cancellationToken)
     {
-        var command = new SelectUserRoleCommand { RoleCode = roleCode };
+        var command = new SelectUserRoleCommand { RoleCode = model.RoleCode };
         var response = await _mediator.Send(command);
 
         if (!response.IsSuccess)

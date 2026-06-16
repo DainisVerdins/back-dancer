@@ -45,20 +45,7 @@ public class SelectUserRoleCommandHandler : IRequestHandler<SelectUserRoleComman
         if (!isUserInRole)
             return new BaseResponse<TokenResponse>(ErrorMessages.GetMessage(ErrorCode.OperationFailed), HttpStatusCode.Forbidden);
 
-        var claims = new List<Claim>
-        {
-            new(CustomClaimType.UserId, user.Id.ToString()),
-            new(CustomClaimType.UserName, user.UserName ?? user.Email ?? ""),
-            new(ClaimTypes.Name, user.UserName ?? user.Email ?? ""),
-            new(ClaimTypes.Email, user.Email ?? "")
-        };
-
-        var userClaims = await _userManager.GetClaimsAsync(user);
-        if (userClaims != null)
-            claims.AddRange(userClaims);
-
-        claims.Add(new Claim(CustomClaimType.RoleName, request.RoleCode));
-        claims.Add(new Claim(ClaimTypes.Role, request.RoleCode));
+        var claims = await _userService.GetClaimsForAccessTokenByUserIdAsync(user.Id, request.RoleCode);
 
         var tokenResponse = _jwtTokenService.GenerateAccessToken(claims);
 

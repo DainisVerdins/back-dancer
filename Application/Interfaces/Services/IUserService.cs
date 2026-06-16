@@ -14,7 +14,7 @@ public interface IUserService
     Task<bool> CreateUserAsync(User userToCreate, string password);
     Task<IList<Claim>> GetUserClaims(User user);
     Task<IdentityResult> AddRoleToUserByRoleNameAsync(User user, string roleName);
-    Task<IList<Claim>> GetClaimsForAccessTokenByUserIdAsync(int userId);
+    Task<IList<Claim>> GetClaimsForAccessTokenByUserIdAsync(int userId, string? roleName = null);
     Task<User?> GetCurrentUserAsync();
     Task<bool> IsLockedOutAsync(User user);
     Task IncrementAccessFailedCountAsync(User user);
