@@ -13,12 +13,14 @@ public class GetCurrentUserQuery : IRequest<BaseResponse<UserDto>>;
 public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, BaseResponse<UserDto>>
 {
     private readonly IUserService _userService;
+    private readonly IRoleService _roleService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public GetCurrentUserQueryHandler(IUserService userService, IHttpContextAccessor httpContextAccessor)
+    public GetCurrentUserQueryHandler(IUserService userService, IHttpContextAccessor httpContextAccessor, IRoleService roleService)
     {
         _userService = userService;
         _httpContextAccessor = httpContextAccessor;
+        _roleService = roleService;
     }
 
     public async Task<BaseResponse<UserDto>> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
@@ -30,12 +32,15 @@ public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, B
         var activeRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value
                          ?? "NoRoleSelected";
 
+        var availableRoles = await _roleService.GetRolesForUserAsync(user);
+
         var userDto = new UserDto
         {
             Id = user.Id,
             UserName = user.UserName ?? "",
             Email = user.Email ?? "",
-            ActiveRole = activeRole
+            ActiveRole = activeRole,
+            AvailableRoles = [.. availableRoles.Select(ur => ur.RoleCode)]
         };
 
         return new BaseResponse<UserDto>(userDto);

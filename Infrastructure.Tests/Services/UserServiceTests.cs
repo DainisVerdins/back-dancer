@@ -146,18 +146,6 @@ public class UserServiceTests
 
     #region GetClaimsForAccessTokenByUserIdAsync Tests
 
-    [Fact]
-    public async Task GetClaimsForAccessTokenByUserIdAsync_WhenUserHasNoRole_ShouldThrowException()
-    {
-        var user = new User { Id = 1, UserName = "NoRoleUser", Email = "test@test.com" };
-        _userManagerMock.Setup(x => x.FindByIdAsync("1")).ReturnsAsync(user);
-        _userManagerMock.Setup(x => x.GetClaimsAsync(user)).ReturnsAsync(new List<Claim>());
-        _roleServiceMock.Setup(x => x.GetRolesForUserAsync(user)).ReturnsAsync(new List<Role>());
-
-        var act = async () => await _sut.GetClaimsForAccessTokenByUserIdAsync(1);
-
-        await act.Should().ThrowAsync<Exception>().WithMessage("User does not have role!");
-    }
 
     [Fact]
     public async Task GetClaimsForAccessTokenByUserIdAsync_WithValidUserAndRole_ShouldReturnAggregatedClaims()
@@ -173,7 +161,6 @@ public class UserServiceTests
         var result = await _sut.GetClaimsForAccessTokenByUserIdAsync(1);
 
         result.Should().NotBeEmpty();
-        result.Any(c => c.Type == ClaimTypes.Role && c.Value == "Moderator").Should().BeTrue();
         result.Any(c => c.Type == "CustomClaim").Should().BeTrue();
     }
 

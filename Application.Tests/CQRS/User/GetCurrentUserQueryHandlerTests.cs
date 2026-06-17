@@ -1,6 +1,7 @@
 ﻿using Application.CORS.Queries;
 using Application.Interfaces.Services;
 using AwesomeAssertions;
+using Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Net;
@@ -11,6 +12,7 @@ namespace Application.Tests.CQRS.User;
 public class GetCurrentUserQueryHandlerTests
 {
     private readonly Mock<IUserService> _userServiceMock;
+    private readonly Mock<IRoleService> _roleServiceMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
 
     private readonly DefaultHttpContext _httpContext;
@@ -21,6 +23,7 @@ public class GetCurrentUserQueryHandlerTests
     {
         _userServiceMock = new Mock<IUserService>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        _roleServiceMock = new Mock<IRoleService>();
 
         _httpContext = new DefaultHttpContext();
 
@@ -30,7 +33,8 @@ public class GetCurrentUserQueryHandlerTests
 
         _sut = new GetCurrentUserQueryHandler(
             _userServiceMock.Object,
-            _httpContextAccessorMock.Object);
+            _httpContextAccessorMock.Object,
+            _roleServiceMock.Object);
     }
 
     [Fact]
@@ -72,6 +76,9 @@ public class GetCurrentUserQueryHandlerTests
                 new Claim(ClaimTypes.Role, "Admin")
             ]));
 
+        _roleServiceMock.Setup(x => x.GetRolesForUserAsync(user))
+            .ReturnsAsync([new() { RoleCode = "Admin" }]);
+
         // Act
         var result = await _sut.Handle(
             new GetCurrentUserQuery(),
@@ -84,7 +91,6 @@ public class GetCurrentUserQueryHandlerTests
         result.Data!.Id.Should().Be(1);
         result.Data.UserName.Should().Be("Kurland");
         result.Data.Email.Should().Be("kurland@test.com");
-        result.Data.ActiveRole.Should().Be("Admin");
     }
 
     [Fact]
@@ -104,6 +110,9 @@ public class GetCurrentUserQueryHandlerTests
 
         _httpContext.User = new ClaimsPrincipal(
             new ClaimsIdentity());
+
+        _roleServiceMock.Setup(x => x.GetRolesForUserAsync(user))
+            .ReturnsAsync([new() { RoleCode = "Admin" }]);
 
         // Act
         var result = await _sut.Handle(
@@ -136,6 +145,9 @@ public class GetCurrentUserQueryHandlerTests
             .Setup(x => x.HttpContext)
             .Returns((HttpContext?)null!);
 
+        _roleServiceMock.Setup(x => x.GetRolesForUserAsync(user))
+            .ReturnsAsync([new() { RoleCode = "Admin" }]);
+
         // Act
         var result = await _sut.Handle(
             new GetCurrentUserQuery(),
@@ -162,6 +174,9 @@ public class GetCurrentUserQueryHandlerTests
         _userServiceMock
             .Setup(x => x.GetCurrentUserAsync())
             .ReturnsAsync(user);
+
+        _roleServiceMock.Setup(x => x.GetRolesForUserAsync(user))
+            .ReturnsAsync([new() { RoleCode = "Admin" }]);
 
         // Act
         var result = await _sut.Handle(

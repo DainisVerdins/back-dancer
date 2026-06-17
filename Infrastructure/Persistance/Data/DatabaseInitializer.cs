@@ -62,7 +62,10 @@ public class DatabaseInitializer
             await _unitOfWork.SaveChangesAsync();
 
             if (isOk)
+            {
                 await _userService.AddRoleToUserByRoleNameAsync(initialAdmin, UserRole.SuperAdmin);
+                await _userService.AddRoleToUserByRoleNameAsync(initialAdmin, UserRole.User);
+            }
         }
     }
 }

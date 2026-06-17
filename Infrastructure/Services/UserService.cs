@@ -115,7 +115,7 @@ public class UserService : IUserService
         await _userManager.AddToRoleAsync(appUser, roleName);
     }
 
-    public async Task<IList<Claim>> GetClaimsForAccessTokenByUserIdAsync(int userId)
+    public async Task<IList<Claim>> GetClaimsForAccessTokenByUserIdAsync(int userId, string? roleName = null)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
 
@@ -133,16 +133,27 @@ public class UserService : IUserService
         if (userClaims != null)
             outputClaims.AddRange(userClaims);
 
-        var userRoles = await _roleService.GetRolesForUserAsync(user!);
+        // Логика определения роли
+        string? roleToEmbed = roleName;
 
-        var currentUserRole = userRoles?.FirstOrDefault();
-        if (currentUserRole is null)
-            throw new Exception("User does not have role!");
+        // Если роль не передана явно (например, при первичном Sign In),
+        // мы проверяем, есть ли у пользователя роли вообще.
+        if (string.IsNullOrEmpty(roleToEmbed))
+        {
+            var userRoles = await _roleService.GetRolesForUserAsync(user);
 
-        outputClaims.AddRange(
-            new Claim(CustomClaimType.RoleName, currentUserRole?.Name ?? "UserRole.User"),
-            new Claim(ClaimTypes.Role, currentUserRole?.Name ?? "UserRole.User")
-        );
+            if (userRoles != null && userRoles.Count == 1)
+                roleToEmbed = userRoles.First().RoleCode;
+        }
+
+        if (!string.IsNullOrEmpty(roleToEmbed))
+        {
+            outputClaims.AddRange(new List<Claim>
+        {
+            new(CustomClaimType.RoleName, roleToEmbed),
+            new(ClaimTypes.Role, roleToEmbed)
+        });
+        }
 
         return outputClaims;
     }
