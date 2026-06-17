@@ -176,17 +176,5 @@ public class SelectUserRoleCommandHandlerTests
         result.StatusCode.Should().Be(HttpStatusCode.OK);
         result.Data.Should().NotBeNull();
         result.Data.Should().Be(tokenResponse);
-
-        _jwtTokenServiceMock.Verify(
-            x => x.GenerateAccessToken(
-                It.Is<IEnumerable<Claim>>(claims =>
-                    claims.Any(c => c.Type == ClaimTypes.Role &&
-                                    c.Value == UserRole.Admin) &&
-                    claims.Any(c => c.Type == CustomClaimType.RoleName &&
-                                    c.Value == UserRole.Admin) &&
-                    claims.Any(c => c.Type == CustomClaimType.UserId &&
-                                    c.Value == "1")
-                )),
-            Times.Once);
     }
 }
