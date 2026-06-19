@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Amazon.S3;
+using Application.Interfaces;
 using Application.Interfaces.Services;
 using Domain.Models;
 using Infrastructure.Persistance.Data;
@@ -46,6 +47,9 @@ public static class DependencyInjection
            .AddEntityFrameworkStores<DataContext>();
 
         services.Configure<InitialUserSettings>(configuration.GetSection("InitialUserCredentials"));
+
+        services.AddAWSService<IAmazonS3>();
+        services.AddScoped<IFileStorageService, S3FileStorageService>();
 
         return services;
     }
