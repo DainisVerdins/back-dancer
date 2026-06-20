@@ -12,9 +12,11 @@ public class UnitOfWork : IUnitOfWork
     {
         _context = context;
         RefreshTokens = new RefreshTokenRepository(_context);
+        Animals = new AnimalRepository(_context);
     }
 
     public IRefreshTokenRepository RefreshTokens { get; private set; }
+    public IAnimalRepository Animals { get; private set; }
 
     public int SaveChanges()
     {
