@@ -1,45 +1,51 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
+using Application.Entities;
 using Application.Interfaces.Services;
+using Infrastructure.Settings;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Services;
 
 public class S3FileStorageService : IFileStorageService
 {
     private readonly IAmazonS3 _s3Client;
-    private readonly string _bucketName = "your-bucket-name";
+    private readonly S3Settings _settings;
 
-    public S3FileStorageService(IAmazonS3 s3Client)
+    public S3FileStorageService(IAmazonS3 s3Client, IOptions<S3Settings> settings)
     {
         _s3Client = s3Client;
+        _settings = settings.Value;
     }
 
-    public async Task DeleteFileAsync(string fileUrl, CancellationToken cancellationToken = default)
+    public async Task DeleteFileAsync(string key, CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrEmpty(key))
+            throw new ArgumentNullException(nameof(key));
 
         await _s3Client.DeleteObjectAsync(new DeleteObjectRequest
         {
-            BucketName = _bucketName,
-            Key = fileUrl
+            BucketName = _settings.BucketName,
+            Key = key
         }, cancellationToken);
     }
 
-    public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
+    public async Task<string> UploadFileAsync(FileRequest request, CancellationToken cancellationToken = default)
     {
-        var key = $"{Guid.NewGuid()}-{fileName}"; // unique file name
+        ArgumentNullException.ThrowIfNull(request);
 
-        var request = new PutObjectRequest
+        var putRequest = new PutObjectRequest
         {
-            BucketName = _bucketName,
-            Key = key,
-            InputStream = fileStream,
-            ContentType = contentType,
-            CannedACL = S3CannedACL.PublicRead // makes file public by url
+            BucketName = _settings.BucketName,
+            Key = request.Key,
+            InputStream = request.FileStream,
+            ContentType = request.ContentType,
+            CannedACL = S3CannedACL.PublicRead
         };
 
-        await _s3Client.PutObjectAsync(request, cancellationToken);
+        await _s3Client.PutObjectAsync(putRequest, cancellationToken);
 
         // return url of the image
-        return $"https://{_bucketName}.s3.amazonaws.com/{key}";
+        return $"https://{_settings.BucketName}.s3.{_settings.Region}.amazonaws.com/{request.Key}";
     }
 }

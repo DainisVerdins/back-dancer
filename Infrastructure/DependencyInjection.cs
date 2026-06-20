@@ -1,4 +1,6 @@
-﻿using Amazon.S3;
+﻿using Amazon.Extensions.NETCore.Setup;
+using Amazon.Runtime;
+using Amazon.S3;
 using Application.Interfaces;
 using Application.Interfaces.Services;
 using Domain.Models;
@@ -24,7 +26,7 @@ public static class DependencyInjection
 
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IRoleService, RoleService>();
-        
+
         services.AddScoped<IPasswordService, PasswordService>();
 
 
@@ -48,7 +50,15 @@ public static class DependencyInjection
 
         services.Configure<InitialUserSettings>(configuration.GetSection("InitialUserCredentials"));
 
-        services.AddAWSService<IAmazonS3>();
+        services.Configure<S3Settings>(configuration.GetSection(S3Settings.SectionName));
+        services.AddAWSService<IAmazonS3>(new AWSOptions
+        {
+            Credentials = new BasicAWSCredentials(
+                configuration["S3Settings:AccessKey"],
+                configuration["S3Settings:SecretKey"]),
+                    Region = Amazon.RegionEndpoint.GetBySystemName(
+                configuration["S3Settings:Region"])
+        });
         services.AddScoped<IFileStorageService, S3FileStorageService>();
 
         return services;
