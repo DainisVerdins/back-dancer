@@ -1,4 +1,4 @@
-﻿using Application.CORS.Animal;
+﻿using Application.ViewModels.Animal;
 using AutoMapper;
 using Domain.Models;
 
@@ -8,7 +8,7 @@ public class AnimalProfile : Profile
 {
     public AnimalProfile()
     {
-        CreateMap<CreateAnimalCommand, Animal>()
+        CreateMap<CreateAnimalViewModel, Animal>()
             .ForMember(dest => dest.Images, opt => opt.Ignore());
     }
 }
