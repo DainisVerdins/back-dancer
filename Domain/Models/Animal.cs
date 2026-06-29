@@ -16,7 +16,7 @@ public class Animal : IEntity
     public Temperament Temperament { get; set; }
     public AnimalStatus Status { get; set; } = AnimalStatus.SearchingForHome;
 
-    public DateTime? DateOfBirth { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
     public DateTime AdmissionDate { get; set; } = DateTime.UtcNow;
 
     public bool IsSterilized { get; set; }

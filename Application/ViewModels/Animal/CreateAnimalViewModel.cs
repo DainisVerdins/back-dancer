@@ -11,7 +11,7 @@ public class CreateAnimalViewModel
     public Gender Gender { get; set; }
     public AnimalSize Size { get; set; }
     public Temperament Temperament { get; set; }
-    public DateTime? DateOfBirth { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
     public bool IsSterilized { get; set; }
     public bool IsVaccinated { get; set; }
     public List<IFormFile> Photos { get; set; } = [];

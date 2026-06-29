@@ -60,7 +60,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Animals");
+                    b.ToTable("Animals", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.AnimalImage", b =>
@@ -87,7 +87,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("AnimalId");
 
-                    b.ToTable("AnimalImages");
+                    b.ToTable("AnimalImages", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.RefreshToken", b =>
@@ -111,7 +111,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.Role", b =>
