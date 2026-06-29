@@ -10,7 +10,7 @@ public class CreateAnimalCommandValdiator : AbstractValidator<CreateAnimalComman
         RuleFor(x => x.Model.Name)
             .NotEmpty();
 
-        When(x => string.IsNullOrEmpty(x.Model.Breed), () =>
+        When(x => !string.IsNullOrEmpty(x.Model.Breed), () =>
         {
 
             RuleFor(x => x.Model.Breed)
