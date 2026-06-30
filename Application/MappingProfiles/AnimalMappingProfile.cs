@@ -16,5 +16,6 @@ public class AnimalMappingProfile : Profile
 
         CreateMap<Animal, AnimalDto>();
         CreateMap<AnimalFilterViewModel, AnimalsFilter>();
+        CreateMap<AnimalImage, AnimalImageDto>();
     }
 }

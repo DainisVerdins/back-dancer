@@ -1,5 +1,6 @@
 ﻿using Application.Entities.Animals;
 using Application.Entities.Common;
+using Application.Exceptions;
 using Application.Interfaces.Repositories;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
@@ -43,5 +44,16 @@ public class AnimalRepository : GenericRepository<Animal>, IAnimalRepository
         //    query = query.Where(a => a.AdmissionDate == filter.AdmissionDate);
 
         return PaginatedList<Animal>.CreateAsync(query, paging.PageNumber, paging.PageSize, ct);
+    }
+
+    public async Task<Animal?> GetAnimalByIdWithImagesAsync(int animalId, CancellationToken ct = default)
+    {
+        if (animalId == 0)
+            throw new ArgumentException(ErrorMessages.GetArgumentMessage(ArgumentErrorCode.ArgumentIsEmpty), nameof(animalId));
+
+        return await _dbSet
+            .AsNoTracking()
+            .Include(x => x.Images)
+            .FirstOrDefaultAsync(x => x.Id == animalId, ct);
     }
 }
