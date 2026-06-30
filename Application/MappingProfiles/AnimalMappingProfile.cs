@@ -1,4 +1,6 @@
-﻿using Application.ViewModels.Animal;
+﻿using Application.Dtos.Animal;
+using Application.Entities.Animals;
+using Application.ViewModels.Animal;
 using AutoMapper;
 using Domain.Models;
 
@@ -11,5 +13,8 @@ public class AnimalMappingProfile : Profile
         CreateMap<CreateAnimalViewModel, Animal>()
             .ForMember(dest => dest.Images, opt => opt.Ignore())
             .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth));
+
+        CreateMap<Animal, AnimalDto>();
+        CreateMap<AnimalFilterViewModel, AnimalsFilter>();
     }
 }
