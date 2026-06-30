@@ -1,4 +1,6 @@
 ﻿using Application.CORS.Animal;
+using Application.CORS.Queries;
+using Application.Dtos.Animal;
 using Application.Entities.Common;
 using Application.ViewModels.Animal;
 using Asp.Versioning;
@@ -35,6 +37,22 @@ public class AnimalController : Controller
     {
         var command = new CreateAnimalCommand { Model = model };
         var response = await _mediator.Send(command, cancellationToken);
+
+        if (!response.IsSuccess)
+            return StatusCode((int)response.StatusCode, response);
+
+        return Ok(response);
+    }
+    [HttpGet("")]
+    [ProducesResponseType(typeof(BaseResponse<PaginatedList<AnimalDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<PaginatedList<AnimalDto>>> GetAllAnimalsForTable(
+    [FromQuery] PaginationParams paging,
+    [FromQuery] AnimalFilterViewModel filter,
+    CancellationToken ct = default)
+    {
+        var query = new GetAllAnimalsQuery { Filter = filter, Paging = paging };
+        var response = await _mediator.Send(query, ct);
 
         if (!response.IsSuccess)
             return StatusCode((int)response.StatusCode, response);

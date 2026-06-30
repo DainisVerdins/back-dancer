@@ -61,6 +61,8 @@ public static class DependencyInjection
         });
         services.AddScoped<IFileStorageService, S3FileStorageService>();
 
+        services.AddScoped<IAnimalService, AnimalService>();
+
         return services;
     }
 }
