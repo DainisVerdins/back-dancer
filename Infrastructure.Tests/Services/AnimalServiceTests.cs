@@ -60,4 +60,36 @@ public class AnimalServiceTests
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
             _service.GetAnimalsAsync(new AnimalsFilter(), null!, CancellationToken.None));
     }
+
+    #region GetAnimalWithImagesAsync
+    [Fact]
+    public async Task GetAnimalWithImagesAsync_ShouldCallRepository_WhenIdIsValid()
+    {
+        // Arrange
+        int animalId = 5;
+        var expectedAnimal = new Animal { Id = animalId, Name = "Test Animal" };
+
+        _animalRepoMock
+            .Setup(r => r.GetAnimalByIdWithImagesAsync(animalId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedAnimal);
+
+        // Act
+        var result = await _service.GetAnimalWithImagesAsync(animalId, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(expectedAnimal.Id, result!.Id);
+        _animalRepoMock.Verify(r => r.GetAnimalByIdWithImagesAsync(animalId, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAnimalWithImagesAsync_ShouldThrowArgumentException_WhenIdIsZero()
+    {
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            _service.GetAnimalWithImagesAsync(0, CancellationToken.None));
+
+        _animalRepoMock.Verify(r => r.GetAnimalByIdWithImagesAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+    #endregion
 }
