@@ -53,7 +53,7 @@ public class AnimalRepositoryTests : IClassFixture<DatabaseFixture>
         {
             Id = animalId,
             Name = "Barsik",
-            Images = new List<AnimalImage> // Предполагаю, что у тебя сущность Image
+            Images = new List<AnimalImage> 
             {
                 new AnimalImage { Url = "test1.jpg" },
                 new AnimalImage { Url = "test2.jpg" }
