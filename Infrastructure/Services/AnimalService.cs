@@ -15,6 +15,12 @@ public class AnimalService : IAnimalService
     }
     public async Task<PaginatedList<Animal>> GetAnimalsAsync(AnimalsFilter filter, PaginationParams pagination, CancellationToken ct = default)
     {
+        if (filter is null)
+            throw new ArgumentNullException(nameof(filter));
+
+        if (pagination is null)
+            throw new ArgumentNullException(nameof(pagination));
+
         return await _uow.Animals.GetPagginatedListAsync(filter, pagination, ct);
     }
 }

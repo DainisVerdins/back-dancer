@@ -9,6 +9,7 @@ public class GetAllAnimalsQueryValidator : AbstractValidator<GetAllAnimalsQuery>
     {
         RuleFor(x => x.Paging.PageNumber)
             .GreaterThanOrEqualTo(0);
+
         RuleFor(x => x.Paging.PageSize)
             .GreaterThan(0);
 
@@ -29,21 +30,25 @@ public class GetAllAnimalsQueryValidator : AbstractValidator<GetAllAnimalsQuery>
             RuleFor(x => x.Filter.AdmissionDate)
                 .NotEmpty();
         });
+
         When(x => x.Filter.Status != null, () =>
         {
             RuleFor(x => x.Filter.Status)
                 .IsInEnum();
         });
+
         When(x => x.Filter.Size != null, () =>
         {
             RuleFor(x => x.Filter.Size)
                 .IsInEnum();
         });
+
         When(x => x.Filter.Gender != null, () =>
         {
             RuleFor(x => x.Filter.Gender)
                 .IsInEnum();
         });
+
         When(x => x.Filter.Temperament != null, () =>
         {
             RuleFor(x => x.Filter.Temperament)
