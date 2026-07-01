@@ -31,7 +31,7 @@ public class CreateAnimalCommandHandler : IRequestHandler<CreateAnimalCommand, B
     {
         var animal = _mapper.Map<Domain.Models.Animal>(request.Model);
 
-        foreach (var photo in request.Model.Photos)
+        foreach (var photo in request.Model.NewPhotos)
         {
             using var stream = photo.OpenReadStream();
             var key = Guid.NewGuid().ToString();

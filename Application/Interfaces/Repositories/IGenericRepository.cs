@@ -21,4 +21,5 @@ public interface IGenericRepository<T> where T : IEntity
     Task RemoveByIdAsync(int id, CancellationToken cancellationToken);
     void RemoveById(int id);
     DbContext GetDbContext();
+    void Update(T entity);
 }
