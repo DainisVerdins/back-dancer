@@ -7,7 +7,6 @@ using AutoMapper;
 using Domain.Models;
 using MediatR;
 using System.Net;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Application.CORS.Animal;
 
@@ -52,7 +51,6 @@ public class UpdateAnimalCommandHandler : IRequestHandler<UpdateAnimalCommand, B
             _uow.AnimalImages.Remove(img);
         }
 
-        // 3. add new images
         foreach (var photo in request.Model.NewPhotos)
         {
             using var stream = photo.OpenReadStream();

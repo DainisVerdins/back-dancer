@@ -47,7 +47,7 @@ public class CreateAnimalCommandHandlerTests
             Model = new CreateAnimalViewModel
             {
                 Name = "Buddy",
-                Photos = new List<IFormFile> { mockFile.Object }
+                NewPhotos = new List<IFormFile> { mockFile.Object }
             }
         };
 
