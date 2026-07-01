@@ -97,4 +97,9 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class, IEnti
 
         _dbSet.Remove(entity);
     }
+
+    public void Update(T entity)
+    {
+        _dbSet.Update(entity);
+    }
 }

@@ -29,7 +29,7 @@ public class CreateAnimalCommandValdiator : AbstractValidator<CreateAnimalComman
         RuleFor(x => x.Model.Temperament)
             .IsInEnum();
 
-        RuleFor(x => x.Model.Photos)
+        RuleFor(x => x.Model.NewPhotos)
             .NotEmpty();
     }
 }

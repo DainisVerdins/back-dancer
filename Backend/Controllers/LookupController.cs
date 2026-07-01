@@ -47,7 +47,7 @@ public class LookupController : Controller
             .Cast<Enum>()
             .Select(e => new SelectListItem
             {
-                Value = e.ToString(),
+                Value = Convert.ToInt32(e).ToString(),
                 Text = e.ToString()
             })
             .ToList();

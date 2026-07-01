@@ -17,5 +17,8 @@ public class AnimalMappingProfile : Profile
         CreateMap<Animal, AnimalDto>();
         CreateMap<AnimalFilterViewModel, AnimalsFilter>();
         CreateMap<AnimalImage, AnimalImageDto>();
+
+        CreateMap<UpdateAnimalViewModel, Animal>()
+        .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth));
     }
 }
