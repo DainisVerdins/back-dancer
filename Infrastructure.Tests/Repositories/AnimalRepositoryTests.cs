@@ -39,6 +39,40 @@ public class AnimalRepositoryTests : IClassFixture<DatabaseFixture>
         Assert.Single(result.Items);
         Assert.Equal("Nagatoro", result.Items.First().Name);
     }
+
+    [Theory]
+    [InlineData("dateofbirth", false, "Murka")] 
+    [InlineData("dateofbirth", true, "Nagatoro")] 
+    public async Task GetPagginatedListAsync_SortsCorrectly(string sortBy, bool isDescending, string expectedFirstName)
+    {
+        // Arrange
+        using var context = _fixture.CreateContext();
+        context.Animals.RemoveRange(context.Animals);
+
+        context.Animals.AddRange(new List<Animal>
+        {
+            new Animal { Name = "Nagatoro", DateOfBirth = new DateOnly(2026, 6, 9) },
+            new Animal { Name = "Murka", DateOfBirth = new DateOnly(2003, 12, 19) }
+        });
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var repo = new AnimalRepository(context);
+        var filter = new AnimalsFilter();
+        var paging = new PaginationParams
+        {
+            PageNumber = 0,
+            PageSize = 10,
+            SortBy = sortBy,
+            IsDescending = isDescending
+        };
+
+        // Act
+        var result = await repo.GetPagginatedListAsync(filter, paging, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(expectedFirstName, result.Items.First().Name);
+    }
+
     #endregion
 
     #region GetAnimalWithImagesAsync

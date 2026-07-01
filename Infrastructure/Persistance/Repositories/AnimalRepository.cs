@@ -43,6 +43,18 @@ public class AnimalRepository : GenericRepository<Animal>, IAnimalRepository
         //if (filter.AdmissionDate.HasValue)
         //    query = query.Where(a => a.AdmissionDate == filter.AdmissionDate);
 
+
+        query = paging.SortBy?.ToLower() switch
+        {
+            "name" => paging.IsDescending ? query.OrderByDescending(a => a.Name) : query.OrderBy(a => a.Name),
+            "breed" => paging.IsDescending ? query.OrderByDescending(a => a.Breed) : query.OrderBy(a => a.Breed),
+            "date" => paging.IsDescending ? query.OrderByDescending(a => a.AdmissionDate) : query.OrderBy(a => a.AdmissionDate),
+            "gender" => paging.IsDescending ? query.OrderByDescending(a => a.Gender) : query.OrderBy(a => a.Gender),
+            "dateofbirth" => paging.IsDescending ? query.OrderByDescending(a => a.DateOfBirth) : query.OrderBy(a => a.DateOfBirth),
+            _ => query.OrderBy(a => a.Id)
+        };
+
+
         return PaginatedList<Animal>.CreateAsync(query, paging.PageNumber, paging.PageSize, ct);
     }
 
