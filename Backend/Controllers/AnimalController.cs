@@ -1,4 +1,5 @@
-﻿using Application.CORS.Animal;
+﻿using Application.Constants;
+using Application.CORS.Animal;
 using Application.CORS.Queries;
 using Application.Dtos.Animal;
 using Application.Entities.Common;
@@ -76,13 +77,30 @@ public class AnimalController : Controller
     }
 
     [HttpPut("")]
-    [ProducesResponseType(typeof(BaseResponse<PaginatedList<Unit>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BaseResponse<Unit>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Unit>> UpdateAnimal(
     [FromForm] UpdateAnimalViewModel model,
     CancellationToken ct = default)
     {
         var command = new UpdateAnimalCommand { Model = model };
+        var response = await _mediator.Send(command, ct);
+
+        if (!response.IsSuccess)
+            return StatusCode((int)response.StatusCode, response);
+
+        return Ok(response);
+    }
+
+    [HttpDelete("{id}")]
+    // TODO: FIX ROLE CLAIM [Authorize(Roles = $"{UserRole.SuperAdmin}, {UserRole.Admin}, {UserRole.ShelterWorker}")]
+    [ProducesResponseType(typeof(BaseResponse<Unit>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<Unit>> DeleteAnimal(
+    [FromRoute] int id,
+    CancellationToken ct = default)
+    {
+        var command = new DeleteAnimalCommand { Id = id };
         var response = await _mediator.Send(command, ct);
 
         if (!response.IsSuccess)
