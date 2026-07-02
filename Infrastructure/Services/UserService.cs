@@ -282,4 +282,19 @@ public class UserService : IUserService
 
         return await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
     }
+
+    public async Task<bool> IsInRoleAsync(User user, string roleName)
+    {
+        if (user is null)
+            throw new ArgumentNullException(nameof(user), ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
+
+        if (string.IsNullOrEmpty(roleName))
+            throw new ArgumentException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty), nameof(roleName));
+
+        var appUser = await _userManager.FindByIdAsync(user.Id.ToString());
+        if (appUser is null)
+            throw new Exception(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
+
+        return await _userManager.IsInRoleAsync(appUser, roleName);
+    }
 }

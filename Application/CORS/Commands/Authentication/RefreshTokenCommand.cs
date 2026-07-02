@@ -7,12 +7,14 @@ using AutoMapper;
 using Domain.Models;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using System.Net;
 
 namespace Application.CORS.Commands.Authentication;
 
 public class RefreshTokenCommand : IRequest<BaseResponse<SignInResponseDto>>
 {
+    public string? ActiveRole { get; init; }
 }
 
 public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, BaseResponse<SignInResponseDto>>
@@ -57,7 +59,19 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, B
                 ErrorMessages.GetMessage(ErrorCode.UserNotFound),
                 HttpStatusCode.NotFound);
 
-        var claimsToAdd = await _userService.GetClaimsForAccessTokenByUserIdAsync(user.Id);
+
+        if (!string.IsNullOrEmpty(request.ActiveRole))
+        {
+            var isUserInRole = await _userService.IsInRoleAsync(user, request.ActiveRole);
+            if (!isUserInRole)
+            {
+                return new BaseResponse<SignInResponseDto>(
+                    ErrorMessages.GetMessage(ErrorCode.OperationFailed),
+                    HttpStatusCode.Forbidden);
+            }
+        }
+
+        var claimsToAdd = await _userService.GetClaimsForAccessTokenByUserIdAsync(user.Id, request.ActiveRole);
 
         var newAccessToken = _jwtTokenService.GenerateAccessToken(claimsToAdd);
         var newRefreshToken = _jwtTokenService.GetRefreshToken();
