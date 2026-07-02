@@ -79,7 +79,7 @@ public class AuthenticateController : ControllerBase
     [ProducesResponseType(typeof(BaseResponse<SignInResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> RefreshToken(CancellationToken cancellationToken)
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command, CancellationToken cancellationToken)
     {
         var refreshToken = Request.Cookies["X-Refresh-Token"];
 
@@ -89,7 +89,7 @@ public class AuthenticateController : ControllerBase
             return StatusCode((int)HttpStatusCode.Unauthorized, new BaseResponse<SignInResponseDto>(ErrorMessages.GetMessage(ErrorCode.RefreshTokenInCookieNotFound), HttpStatusCode.Unauthorized));
         }
 
-        var response = await _mediator.Send(new RefreshTokenCommand(), cancellationToken);
+        var response = await _mediator.Send(command, cancellationToken);
 
         return StatusCode((int)response.StatusCode, response);
     }

@@ -185,6 +185,70 @@ public class RefreshTokenCommandHandlerTests
         // Verify the response cookies collection contains our new key assignment
         _httpContext.Response.Headers["Set-Cookie"].ToString().Should().Contain("X-Refresh-Token=new-refresh-token");
     }
+    [Fact]
+    public async Task Handle_WhenActiveRoleProvidedButUserNotInRole_ShouldReturnForbidden()
+    {
+        // Arrange
+        string token = "valid-token";
+        string role = "Admin";
+        _httpContext.Request.Headers["Cookie"] = $"X-Refresh-Token={token}";
 
+        var storedToken = new RefreshToken { Token = token, UserId = 1, IsRevoked = false, ExpiresAt = DateTime.UtcNow.AddDays(1) };
+        var repoMock = new Mock<IRefreshTokenRepository>();
+        repoMock.Setup(x => x.GetRefreshTokenAsync(token, It.IsAny<CancellationToken>())).ReturnsAsync(storedToken);
+        SetupMockRepository(repoMock);
+
+        var user = new Domain.Models.User { Id = 1 };
+        _userServiceMock.Setup(x => x.GetUserByIdAsync(1)).ReturnsAsync(user);
+
+        // no roles
+        _userServiceMock.Setup(x => x.IsInRoleAsync(user, role)).ReturnsAsync(false);
+
+        // Act
+        var result = await _sut.Handle(new RefreshTokenCommand { ActiveRole = role }, CancellationToken.None);
+
+        // Assert
+        result.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task Handle_WithValidActiveRole_ShouldPassRoleToClaimsServiceAndReturnOk()
+    {
+        // Arrange
+        string token = "valid-token";
+        string role = "SuperAdmin";
+        _httpContext.Request.Headers["Cookie"] = $"X-Refresh-Token={token}";
+
+        var storedToken = new RefreshToken { Token = token, UserId = 1, IsRevoked = false, ExpiresAt = DateTime.UtcNow.AddDays(1) };
+        var repoMock = new Mock<IRefreshTokenRepository>();
+        repoMock.Setup(x => x.GetRefreshTokenAsync(token, It.IsAny<CancellationToken>())).ReturnsAsync(storedToken);
+        SetupMockRepository(repoMock);
+
+        var user = new Domain.Models.User { Id = 1 };
+        _userServiceMock.Setup(x => x.GetUserByIdAsync(1)).ReturnsAsync(user);
+        _userServiceMock.Setup(x => x.IsInRoleAsync(user, role)).ReturnsAsync(true);
+
+        var claims = new List<Claim> { new(ClaimTypes.Role, role) };
+
+        _userServiceMock.Setup(x => x.GetClaimsForAccessTokenByUserIdAsync(1, role)).ReturnsAsync(claims);
+
+        var genToken = new TokenResponse { Token = "new-access", ExpiresAt = DateTime.UtcNow.AddMinutes(15) };
+        var mappedNewRefreshToken = new RefreshToken
+        {
+            Token = "new-refresh-token",
+            ExpiresAt = DateTime.UtcNow.AddDays(7)
+        };
+        _jwtTokenServiceMock.Setup(x => x.GenerateAccessToken(claims)).Returns(genToken);
+        _jwtTokenServiceMock.Setup(x => x.GetRefreshToken()).Returns(new TokenResponse());
+        _mapperMock.Setup(x => x.Map<RefreshToken>(It.IsAny<TokenResponse>())).Returns(mappedNewRefreshToken);
+
+        // Act
+        var result = await _sut.Handle(new RefreshTokenCommand { ActiveRole = role }, CancellationToken.None);
+
+        // Assert
+        result.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        _userServiceMock.Verify(x => x.GetClaimsForAccessTokenByUserIdAsync(1, role), Times.Once);
+    }
     #endregion
 }

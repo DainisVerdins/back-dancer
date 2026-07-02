@@ -224,4 +224,61 @@ public class UserServiceTests
     }
 
     #endregion
+
+    #region IsInRoleAsync Tests
+    [Fact]
+    public async Task IsInRoleAsync_WhenUserIsNull_ThrowsArgumentNullException()
+    {
+        Func<Task> act = () => _sut.IsInRoleAsync(null!, "Admin");
+        await act.Should().ThrowAsync<ArgumentNullException>();
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task IsInRoleAsync_WhenRoleNameIsNullOrEmpty_ThrowsArgumentException(string? role)
+    {
+        var user = new User { Id = 1 };
+        Func<Task> act = () => _sut.IsInRoleAsync(user, role!);
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task IsInRoleAsync_WhenUserNotFoundInDb_ThrowsException()
+    {
+        var user = new User { Id = 1 };
+        _userManagerMock.Setup(x => x.FindByIdAsync("1")).ReturnsAsync((User?)null);
+
+        Func<Task> act = () => _sut.IsInRoleAsync(user, "Admin");
+        await act.Should().ThrowAsync<Exception>().WithMessage("The specified user was not found.");
+    }
+
+    [Fact]
+    public async Task IsInRoleAsync_WhenUserInRole_ReturnsTrue()
+    {
+        var user = new User { Id = 1 };
+        var appUser = new User { Id = 1 };
+
+        _userManagerMock.Setup(x => x.FindByIdAsync("1")).ReturnsAsync(appUser);
+        _userManagerMock.Setup(x => x.IsInRoleAsync(appUser, "Admin")).ReturnsAsync(true);
+
+        var result = await _sut.IsInRoleAsync(user, "Admin");
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task IsInRoleAsync_WhenUserNotInRole_ReturnsFalse()
+    {
+        var user = new User { Id = 1 };
+        var appUser = new User { Id = 1 };
+
+        _userManagerMock.Setup(x => x.FindByIdAsync("1")).ReturnsAsync(appUser);
+        _userManagerMock.Setup(x => x.IsInRoleAsync(appUser, "Admin")).ReturnsAsync(false);
+
+        var result = await _sut.IsInRoleAsync(user, "Admin");
+
+        result.Should().BeFalse();
+    }
+    #endregion
 }
