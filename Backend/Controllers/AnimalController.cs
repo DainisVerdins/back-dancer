@@ -34,6 +34,7 @@ public class AnimalController : Controller
     [ProducesResponseType(typeof(BaseResponse<int>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Authorize(Roles = $"{UserRole.SuperAdmin}, {UserRole.Admin}, {UserRole.ShelterWorker}")]
     public async Task<IActionResult> CreateAnimal([FromForm] CreateAnimalViewModel model, CancellationToken cancellationToken)
     {
         var command = new CreateAnimalCommand { Model = model };
@@ -67,6 +68,7 @@ public class AnimalController : Controller
     [FromQuery] AnimalFilterViewModel filter,
     CancellationToken ct = default)
     {
+        var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
         var query = new GetAllAnimalsQuery { Filter = filter, Paging = paging };
         var response = await _mediator.Send(query, ct);
 
@@ -79,6 +81,7 @@ public class AnimalController : Controller
     [HttpPut("")]
     [ProducesResponseType(typeof(BaseResponse<Unit>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Authorize(Roles = $"{UserRole.SuperAdmin}, {UserRole.Admin}, {UserRole.ShelterWorker}")]
     public async Task<ActionResult<Unit>> UpdateAnimal(
     [FromForm] UpdateAnimalViewModel model,
     CancellationToken ct = default)
@@ -93,7 +96,7 @@ public class AnimalController : Controller
     }
 
     [HttpDelete("{id}")]
-    // TODO: FIX ROLE CLAIM [Authorize(Roles = $"{UserRole.SuperAdmin}, {UserRole.Admin}, {UserRole.ShelterWorker}")]
+    [Authorize(Roles = $"{UserRole.SuperAdmin}, {UserRole.Admin}, {UserRole.ShelterWorker}")]
     [ProducesResponseType(typeof(BaseResponse<Unit>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Unit>> DeleteAnimal(
