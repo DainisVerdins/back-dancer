@@ -21,13 +21,15 @@ public class AnimalRepositoryTests : IClassFixture<DatabaseFixture>
     {
         // Arrange
         using var context = _fixture.CreateContext();
+
+        context.Animals.RemoveRange(context.Animals);
+        await context.SaveChangesAsync(CancellationToken.None);
         context.Animals.AddRange(new List<Animal>
         {
             new Animal { Name = "Nagatoro", Breed = "Human", Gender = Domain.Enums.Gender.Female },
             new Animal { Name = "Luna", Breed = "Cat", Gender = Domain.Enums.Gender.Female }
         });
         await context.SaveChangesAsync(CancellationToken.None);
-
         var repo = new AnimalRepository(context);
         var filter = new AnimalsFilter { NameSearchTerm = "Nag" };
         var paging = new PaginationParams { PageNumber = 0, PageSize = 10 };
