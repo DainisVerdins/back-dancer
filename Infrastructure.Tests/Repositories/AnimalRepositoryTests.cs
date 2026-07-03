@@ -145,7 +145,6 @@ public class AnimalRepositoryTests : IClassFixture<DatabaseFixture>
         using var context = _fixture.CreateContext();
         context.Animals.RemoveRange(context.Animals);
 
-        // Добавляем животных с изображениями
         context.Animals.AddRange(new List<Animal>
         {
             new Animal { Name = "Cat1", Images = new List<AnimalImage> { new AnimalImage { Url = "cat1.jpg" } } },

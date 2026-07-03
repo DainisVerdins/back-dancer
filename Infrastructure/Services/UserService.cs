@@ -133,11 +133,11 @@ public class UserService : IUserService
         if (userClaims != null)
             outputClaims.AddRange(userClaims);
 
-        // Логика определения роли
+        if (user.RequirePasswordChange)
+            outputClaims.Add(new Claim(CustomClaimType.ForceChangePassword, "true"));
+
         string? roleToEmbed = roleName;
 
-        // Если роль не передана явно (например, при первичном Sign In),
-        // мы проверяем, есть ли у пользователя роли вообще.
         if (string.IsNullOrEmpty(roleToEmbed))
         {
             var userRoles = await _roleService.GetRolesForUserAsync(user);
@@ -280,7 +280,14 @@ public class UserService : IUserService
         if (string.Equals(oldPassword, newPassword))
             throw new Exception("new and old password are same");
 
-        return await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+        var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+        if (result.Succeeded && user.RequirePasswordChange)
+        {
+            user.RequirePasswordChange = false;
+            await _userManager.UpdateAsync(user);
+        }
+
+        return result;
     }
 
     public async Task<bool> IsInRoleAsync(User user, string roleName)

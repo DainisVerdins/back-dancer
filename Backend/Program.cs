@@ -186,6 +186,7 @@ public class Program
                 await next();
             });
             app.UseMiddleware<ExceptionMiddleware>();
+            app.UseMiddleware<ForcePasswordChangeMiddleware>();
             app.UseCors("FrontendPolicy");
             app.UseRateLimiter();
             app.UseAuthentication();
