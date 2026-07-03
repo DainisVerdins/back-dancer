@@ -1,4 +1,5 @@
-﻿using Application.Interfaces.Services;
+﻿using Application.Constants;
+using Application.Interfaces.Services;
 using AwesomeAssertions;
 using Domain.Models;
 using Infrastructure.Services;
@@ -146,13 +147,12 @@ public class UserServiceTests
 
     #region GetClaimsForAccessTokenByUserIdAsync Tests
 
-
     [Fact]
     public async Task GetClaimsForAccessTokenByUserIdAsync_WithValidUserAndRole_ShouldReturnAggregatedClaims()
     {
-        var user = new User { Id = 1, UserName = "StandardUser", Email = "user@test.com" };
+        var user = new User { Id = 1, UserName = "StandardUser", Email = "user@test.com", RequirePasswordChange = false };
         var extraClaims = new List<Claim> { new("CustomClaim", "Value") };
-        var roles = new List<Role> { new() { Name = "Moderator" } };
+        var roles = new List<Role> { new() { RoleCode = "Moderator" } };
 
         _userManagerMock.Setup(x => x.FindByIdAsync("1")).ReturnsAsync(user);
         _userManagerMock.Setup(x => x.GetClaimsAsync(user)).ReturnsAsync(extraClaims);
@@ -162,6 +162,37 @@ public class UserServiceTests
 
         result.Should().NotBeEmpty();
         result.Any(c => c.Type == "CustomClaim").Should().BeTrue();
+        result.Any(c => c.Type == CustomClaimType.ForceChangePassword).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetClaimsForAccessTokenByUserIdAsync_WhenRequirePasswordChangeIsTrue_ShouldIncludeForceChangePasswordClaim()
+    {
+        // Arrange
+        var user = new User
+        {
+            Id = 1,
+            UserName = "LockedUser",
+            Email = "user@test.com",
+            RequirePasswordChange = true
+        };
+
+        _userManagerMock.Setup(x => x.FindByIdAsync(It.IsAny<string>()))
+            .ReturnsAsync(user);
+
+        _userManagerMock.Setup(x => x.GetClaimsAsync(It.IsAny<User>()))
+            .ReturnsAsync(new List<Claim>());
+
+        _roleServiceMock.Setup(x => x.GetRolesForUserAsync(It.IsAny<User>()))
+            .ReturnsAsync(new List<Role>());
+
+        // Act
+        var result = await _sut.GetClaimsForAccessTokenByUserIdAsync(1);
+
+        // Assert
+        var forceClaim = result.FirstOrDefault(c => c.Type == CustomClaimType.ForceChangePassword);
+        forceClaim.Should().NotBeNull();
+        forceClaim!.Value.Should().Be("true");
     }
 
     #endregion
