@@ -68,4 +68,14 @@ public class AnimalRepository : GenericRepository<Animal>, IAnimalRepository
             .Include(x => x.Images)
             .FirstOrDefaultAsync(x => x.Id == animalId, ct);
     }
+
+    public Task<PaginatedList<Animal>> GetPaginatedListWithImagesAsync(PaginationParams paging, CancellationToken ct = default)
+    {
+        var query = _dbSet
+            .AsNoTracking()
+            .Include(a => a.Images)
+            .AsQueryable();
+
+        return PaginatedList<Animal>.CreateAsync(query, paging.PageNumber, paging.PageSize, ct);
+    }
 }
