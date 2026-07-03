@@ -137,4 +137,54 @@ public class AnimalRepositoryTests : IClassFixture<DatabaseFixture>
         Assert.Null(result);
     }
     #endregion
+    #region GetPaginatedListWithImagesAsync
+    [Fact]
+    public async Task GetPaginatedListWithImagesAsync_ShouldReturnPaginatedListWithImages()
+    {
+        // Arrange
+        using var context = _fixture.CreateContext();
+        context.Animals.RemoveRange(context.Animals);
+
+        // Добавляем животных с изображениями
+        context.Animals.AddRange(new List<Animal>
+        {
+            new Animal { Name = "Cat1", Images = new List<AnimalImage> { new AnimalImage { Url = "cat1.jpg" } } },
+            new Animal { Name = "Cat2", Images = new List<AnimalImage> { new AnimalImage { Url = "cat2.jpg" } } }
+        });
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var repo = new AnimalRepository(context);
+        var paging = new PaginationParams { PageNumber = 0, PageSize = 10 };
+
+        // Act
+        var result = await repo.GetPaginatedListWithImagesAsync(paging, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(2, result.TotalCount);
+        Assert.All(result.Items, animal => {
+            Assert.NotNull(animal.Images);
+            Assert.NotEmpty(animal.Images);
+        });
+    }
+
+    [Fact]
+    public async Task GetPaginatedListWithImagesAsync_ShouldWorkWithEmptyDb()
+    {
+        // Arrange
+        using var context = _fixture.CreateContext();
+        context.Animals.RemoveRange(context.Animals);
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var repo = new AnimalRepository(context);
+        var paging = new PaginationParams { PageNumber = 0, PageSize = 10 };
+
+        // Act
+        var result = await repo.GetPaginatedListWithImagesAsync(paging, CancellationToken.None);
+
+        // Assert
+        Assert.Empty(result.Items);
+        Assert.Equal(0, result.TotalCount);
+    }
+    #endregion
 }
