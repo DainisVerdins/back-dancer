@@ -7,4 +7,5 @@ public class UserDto
     public string ActiveRole { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
     public List<string> AvailableRoles { get; set; } = [];
+    public bool RequiresPasswordChange { get; set; }
 }

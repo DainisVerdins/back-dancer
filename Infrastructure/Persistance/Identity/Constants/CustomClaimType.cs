@@ -6,4 +6,5 @@ public static class CustomClaimType
     public const string Email = "email";
     public const string RoleName = "roleName";
     public const string UserName = "userName";
+    public const string ForceChangePassword = "forceChangePassword";
 }

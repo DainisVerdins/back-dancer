@@ -1,4 +1,5 @@
-﻿using Application.Dtos;
+﻿using Application.Constants;
+using Application.Dtos;
 using Application.Entities.Common;
 using Application.Exceptions;
 using Application.Interfaces.Services;
@@ -29,10 +30,15 @@ public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, B
         if (user == null)
             return new BaseResponse<UserDto>(ErrorMessages.GetMessage(ErrorCode.UserNotFound), HttpStatusCode.Unauthorized);
 
-        var activeRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value
+        var contextUser = _httpContextAccessor.HttpContext?.User;
+
+        var activeRole = contextUser?.FindFirst(ClaimTypes.Role)?.Value
                          ?? "NoRoleSelected";
 
         var availableRoles = await _roleService.GetRolesForUserAsync(user);
+
+        var requiresPasswordChange = contextUser?.HasClaim(c =>
+            c.Type == CustomClaimType.ForceChangePassword && c.Value == "true") ?? false;
 
         var userDto = new UserDto
         {
@@ -40,7 +46,8 @@ public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, B
             UserName = user.UserName ?? "",
             Email = user.Email ?? "",
             ActiveRole = activeRole,
-            AvailableRoles = [.. availableRoles.Select(ur => ur.RoleCode)]
+            AvailableRoles = [.. availableRoles.Select(ur => ur.RoleCode)],
+            RequiresPasswordChange = requiresPasswordChange
         };
 
         return new BaseResponse<UserDto>(userDto);
