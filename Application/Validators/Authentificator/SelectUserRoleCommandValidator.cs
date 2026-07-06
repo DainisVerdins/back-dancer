@@ -1,7 +1,7 @@
 ﻿using Application.CORS.Commands;
 using FluentValidation;
 
-namespace Application.Validators;
+namespace Application.Validators.Authentificator;
 
 public class SelectUserRoleCommandValidator : AbstractValidator<SelectUserRoleCommand>
 {
