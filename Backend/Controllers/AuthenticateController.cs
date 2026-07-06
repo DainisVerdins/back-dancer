@@ -3,6 +3,7 @@ using Application.Dtos;
 using Application.Entities.Common;
 using Application.Exceptions;
 using Application.Interfaces.Services;
+using Application.ViewModels;
 using Application.ViewModels.Authentication;
 using Asp.Versioning;
 using MediatR;
@@ -92,5 +93,23 @@ public class AuthenticateController : ControllerBase
         var response = await _mediator.Send(command, cancellationToken);
 
         return StatusCode((int)response.StatusCode, response);
+    }
+
+    [HttpPost("change-password")]
+    [Authorize]
+    [ProducesResponseType(typeof(BaseResponse<Unit>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordViewModel request)
+    {
+        var command = new ChangePasswordCommand(request.OldPassword, request.NewPassword);
+        var response = await _mediator.Send(command);
+
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+            return Unauthorized(response);
+
+        if (response.StatusCode == HttpStatusCode.BadRequest)
+            return BadRequest(response);
+
+        return Ok(response);
     }
 }
