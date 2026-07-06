@@ -1,7 +1,7 @@
 ﻿using Application.CORS.Commands.Authentication;
 using FluentValidation;
 
-namespace Application.Validators;
+namespace Application.Validators.Authentificator;
 
 internal class RefreshTokenCommandValidator : AbstractValidator<RefreshTokenCommand>
 {
