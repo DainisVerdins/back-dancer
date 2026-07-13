@@ -52,7 +52,7 @@ public class AuthenticateController : ControllerBase
     }
 
     [HttpDelete("sign-out")]
-    [ProducesResponseType(typeof(BaseResponse<Unit>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SignOut(CancellationToken cancellationToken)
@@ -62,13 +62,13 @@ public class AuthenticateController : ControllerBase
         var username = HttpContext.User.Identity?.Name;
 
         if (username is null)
-            return StatusCode((int)HttpStatusCode.Unauthorized, new BaseResponse<Unit>(ErrorMessages.GetMessage(ErrorCode.UserNotFound), HttpStatusCode.Unauthorized));
+            throw new NotFoundException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
 
-        var response = await _mediator.Send(new SignOutUserCommand(), cancellationToken);
+        await _mediator.Send(new SignOutUserCommand(), cancellationToken);
 
         Response.Cookies.Delete("X-Refresh-Token");
 
-        return StatusCode((int)response.StatusCode, response);
+        return Ok();
     }
 
     [HttpPost("refresh-token")]

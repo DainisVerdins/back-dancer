@@ -8,6 +8,9 @@ using MediatR;
 using Moq;
 using System.Linq.Expressions;
 using System.Net;
+using System.Reflection.Metadata;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Application.Tests.CQRS.Authentification;
 
@@ -35,17 +38,13 @@ public class SignOutUserCommandHandlerTests
     #region Fail Path Tests
 
     [Fact]
-    public async Task Handle_WhenUserIsNotAuthenticated_ShouldReturnNotFound()
+    public async Task Handle_WhenUserIsNotAuthenticated_ThrowNotFoundException()
     {
         // Arrange
         _userServiceMock.Setup(x => x.GetCurrentUserAsync()).ReturnsAsync((Domain.Models.User?)null);
 
-        // Act
-        var result = await _sut.Handle(new SignOutUserCommand(), CancellationToken.None);
-
-        // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        result.Data.Should().Be(Unit.Value);
+        // Act & Assert
+        await Assert.ThrowsAsync<Exceptions.NotFoundException>(() => _sut.Handle(new SignOutUserCommand(), CancellationToken.None));
     }
 
     #endregion
@@ -72,11 +71,7 @@ public class SignOutUserCommandHandlerTests
             .Returns(activeTokens);
 
         // Act
-        var result = await _sut.Handle(new SignOutUserCommand(), CancellationToken.None);
-
-        // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.OK);
-        result.Data.Should().Be(Unit.Value);
+        await _sut.Handle(new SignOutUserCommand(), CancellationToken.None);
 
         // Verify side-effects: both tokens inside our active list must be modified to true!
         activeTokens.All(t => t.IsRevoked).Should().BeTrue();
@@ -98,10 +93,9 @@ public class SignOutUserCommandHandlerTests
             .Returns(new List<RefreshToken>());
 
         // Act
-        var result = await _sut.Handle(new SignOutUserCommand(), CancellationToken.None);
+        await _sut.Handle(new SignOutUserCommand(), CancellationToken.None);
 
         // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.OK);
         _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
