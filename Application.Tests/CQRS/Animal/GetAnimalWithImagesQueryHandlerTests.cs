@@ -42,9 +42,8 @@ public class GetAnimalWithImagesQueryHandlerTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-        Assert.NotNull(result.Data);
-        Assert.Equal(animalDto.Name, result.Data.Name);
+        Assert.NotNull(result);
+        Assert.Equal(animalDto.Name, result.Name);
         _mapperMock.Verify(m => m.Map<AnimalDto>(animal), Times.Once);
     }
 
@@ -64,8 +63,6 @@ public class GetAnimalWithImagesQueryHandlerTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
-        Assert.Null(result.Data);
-        Assert.NotEmpty(result.ErrorMessages);
+        Assert.Null(result);
     }
 }
