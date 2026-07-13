@@ -9,7 +9,6 @@ using Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Net;
 using System.Security.Claims;
 
 namespace Application.Tests.CQRS.Authentification;
@@ -73,12 +72,8 @@ public class SignInUserCommandHandlerTests
         _userServiceMock.Setup(x => x.GetUserByEmailAsync(command.Model.Email))
             .ReturnsAsync((Domain.Models.User?)null);
 
-        // Act
-        var result = await _sut.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        result.Data.Should().BeNull();
+        // Act & Assert
+        await Assert.ThrowsAsync<Exceptions.NotFoundException>(() => _sut.Handle(command, CancellationToken.None));
     }
 
     [Fact]
@@ -91,11 +86,8 @@ public class SignInUserCommandHandlerTests
         _userServiceMock.Setup(x => x.GetUserByEmailAsync(command.Model.Email)).ReturnsAsync(user);
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext?)null!);
 
-        // Act
-        var result = await _sut.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        // Act & Assert
+        await Assert.ThrowsAsync<Exceptions.ValidationException>(() => _sut.Handle(command, CancellationToken.None));
     }
 
     [Fact]
@@ -108,11 +100,8 @@ public class SignInUserCommandHandlerTests
         _userServiceMock.Setup(x => x.GetUserByEmailAsync(command.Model.Email)).ReturnsAsync(user);
         _userServiceMock.Setup(x => x.IsLockedOutAsync(user)).ReturnsAsync(true);
 
-        // Act
-        var result = await _sut.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        // Act & Assert
+        await Assert.ThrowsAsync<ApplicationException>(() => _sut.Handle(command, CancellationToken.None));
 
         // Verify Logger warning statement execution sequence 
         _loggerMock.Verify(
@@ -136,11 +125,8 @@ public class SignInUserCommandHandlerTests
         _userServiceMock.Setup(x => x.IsLockedOutAsync(user)).ReturnsAsync(false);
         _userServiceMock.Setup(x => x.CheckPasswordAsync(user, command.Model.Password)).ReturnsAsync(false);
 
-        // Act
-        var result = await _sut.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        // Act & Assert
+        await Assert.ThrowsAsync<ApplicationException>(() => _sut.Handle(command, CancellationToken.None));
         _userServiceMock.Verify(x => x.IncrementAccessFailedCountAsync(user), Times.Once);
         _userServiceMock.Verify(x => x.ResetAccessFailedCountAsync(user), Times.Never);
     }
@@ -172,9 +158,8 @@ public class SignInUserCommandHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.OK);
-        result.Data.Should().NotBeNull();
-        result.Data!.AccessToken.Should().Be("valid-access-token");
+        result.Should().NotBeNull();
+        result.AccessToken.Should().Be("valid-access-token");
 
         // Verify side effects
         _userServiceMock.Verify(x => x.ResetAccessFailedCountAsync(user), Times.Once);
