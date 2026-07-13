@@ -1,14 +1,12 @@
-﻿using Application.Entities.Common;
-using Application.Exceptions;
+﻿using Application.Exceptions;
 using Application.Interfaces.Services;
 using MediatR;
-using System.Net;
 
 namespace Application.CORS.Commands.Authentication;
 
-public record ChangePasswordCommand(string OldPassword, string NewPassword) : IRequest<BaseResponse<Unit>>;
+public record ChangePasswordCommand(string OldPassword, string NewPassword) : IRequest;
 
-public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordCommand, BaseResponse<Unit>>
+public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordCommand>
 {
     private readonly IUserService _userService;
 
@@ -17,20 +15,18 @@ public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordComman
         _userService = userService;
     }
 
-    public async Task<BaseResponse<Unit>> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
+    public async Task Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
     {
         var user = await _userService.GetCurrentUserAsync();
         if (user == null)
-            return new BaseResponse<Unit>(ErrorMessages.GetMessage(ErrorCode.UserNotFound), HttpStatusCode.Unauthorized);
+            throw new NotFoundException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
 
         var result = await _userService.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
 
-        if (!result.Succeeded)
-        {
-            var errors = result.Errors.Select(e => e.Description).ToList();
-            return new BaseResponse<Unit>(Unit.Value, errors, HttpStatusCode.BadRequest);
-        }
+        if (result.Succeeded)
+            return;
 
-        return new BaseResponse<Unit>(Unit.Value);
+        var errors = result.Errors.Select(e => e.Description).ToList();
+        throw new ApplicationException(string.Join(",", errors));
     }
 }

@@ -1,11 +1,8 @@
 ﻿using Application.CORS.Commands.Authentication;
 using Application.Exceptions;
 using Application.Interfaces.Services;
-using AwesomeAssertions;
-using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Moq;
-using System.Net;
 
 namespace Application.Tests.CQRS.Authentification;
 
@@ -21,7 +18,7 @@ public class ChangePasswordCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenUserNotFound_ShouldReturnUnauthorizedResponse()
+    public async Task Handle_WhenUserNotFound_ShouldThrowNotFoundException()
     {
         // Arrange
         _userServiceMock.Setup(x => x.GetCurrentUserAsync())
@@ -29,18 +26,15 @@ public class ChangePasswordCommandHandlerTests
 
         var command = new ChangePasswordCommand("OldPass123!", "NewPass123!");
 
-        // Act
-        var result = await _sut.Handle(command, CancellationToken.None);
+        // Act & Assert
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.Handle(command, CancellationToken.None));
 
         // Assert
-        result.Should().NotBeNull();
-        result.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        result.ErrorMessages.Should().Contain(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
         _userServiceMock.Verify(x => x.ChangePasswordAsync(It.IsAny<Domain.Models.User>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public async Task Handle_WhenIdentityResultFails_ShouldReturnBadRequestWithErrors()
+    public async Task Handle_WhenIdentityResultFails_ShouldThrowApplicationException()
     {
         // Arrange
         var user = new Domain.Models.User { Id = 1, UserName = "Tester" };
@@ -58,15 +52,9 @@ public class ChangePasswordCommandHandlerTests
 
         var command = new ChangePasswordCommand("OldPass123!", "InvalidNewPass");
 
-        // Act
-        var result = await _sut.Handle(command, CancellationToken.None);
+        // Act & Assert
+        await Assert.ThrowsAsync<ApplicationException>(() => _sut.Handle(command, CancellationToken.None));
 
-        // Assert
-        result.Should().NotBeNull();
-        result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        result.ErrorMessages.Should().HaveCount(2);
-        result.ErrorMessages.Should().Contain("Password too short.");
-        result.Data.Should().Be(Unit.Value);
     }
 
     [Fact]
@@ -84,14 +72,9 @@ public class ChangePasswordCommandHandlerTests
         var command = new ChangePasswordCommand("OldPass123!", "ValidNewPass123!");
 
         // Act
-        var result = await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
-        result.StatusCode.Should().Be(HttpStatusCode.OK);
-        result.ErrorMessages.Should().BeEmpty();
-        result.Data.Should().Be(Unit.Value);
-
         _userServiceMock.Verify(x => x.ChangePasswordAsync(user, "OldPass123!", "ValidNewPass123!"), Times.Once);
     }
 }
