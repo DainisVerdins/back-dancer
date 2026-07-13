@@ -1,5 +1,4 @@
 ﻿using Application.Dtos;
-using Application.Entities.Common;
 using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Services;
@@ -7,17 +6,15 @@ using AutoMapper;
 using Domain.Models;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using System.Net;
 
 namespace Application.CORS.Commands.Authentication;
 
-public class RefreshTokenCommand : IRequest<BaseResponse<SignInResponseDto>>
+public class RefreshTokenCommand : IRequest<SignInResponseDto>
 {
     public string? ActiveRole { get; init; }
 }
 
-public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, BaseResponse<SignInResponseDto>>
+public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, SignInResponseDto>
 {
     private readonly IUserService _userService;
     private readonly IJwtTokenService _jwtTokenService;
@@ -36,39 +33,27 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, B
         _mapper = mapper;
         _httpContextAccessor = httpContextAccessor;
     }
-    public async Task<BaseResponse<SignInResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
+    public async Task<SignInResponseDto> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
         if (_httpContextAccessor?.HttpContext is null)
-            return new BaseResponse<SignInResponseDto>(ErrorMessages.GetMessage(ErrorCode.NotFound), HttpStatusCode.NotFound);
+            throw new UnauthorizedException(ErrorMessages.GetMessage(ErrorCode.NotFound));
 
         if (!_httpContextAccessor.HttpContext.Request.Cookies.TryGetValue("X-Refresh-Token", out var refreshToken) || string.IsNullOrEmpty(refreshToken))
-            return new BaseResponse<SignInResponseDto>(
-                ErrorMessages.GetMessage(ErrorCode.RefreshTokenInvalid),
-                HttpStatusCode.Unauthorized);
-
+            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.RefreshTokenInvalid));
 
         var storedToken = await _unitOfWork.RefreshTokens.GetRefreshTokenAsync(refreshToken, cancellationToken);
         if (storedToken == null || storedToken.IsRevoked || storedToken.ExpiresAt < DateTime.UtcNow)
-            return new BaseResponse<SignInResponseDto>(
-                ErrorMessages.GetMessage(ErrorCode.RefreshTokenInvalid),
-                HttpStatusCode.Unauthorized);
+            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.RefreshTokenInvalid));
 
         var user = await _userService.GetUserByIdAsync(storedToken.UserId);
         if (user is null)
-            return new BaseResponse<SignInResponseDto>(
-                ErrorMessages.GetMessage(ErrorCode.UserNotFound),
-                HttpStatusCode.NotFound);
-
+            throw new NotFoundException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
 
         if (!string.IsNullOrEmpty(request.ActiveRole))
         {
             var isUserInRole = await _userService.IsInRoleAsync(user, request.ActiveRole);
             if (!isUserInRole)
-            {
-                return new BaseResponse<SignInResponseDto>(
-                    ErrorMessages.GetMessage(ErrorCode.OperationFailed),
-                    HttpStatusCode.Forbidden);
-            }
+                throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.OperationFailed));
         }
 
         var claimsToAdd = await _userService.GetClaimsForAccessTokenByUserIdAsync(user.Id, request.ActiveRole);
@@ -91,12 +76,11 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, B
             Expires = refreshTokenToAdd.ExpiresAt
         });
 
-        return new BaseResponse<SignInResponseDto>(
+        return
             new SignInResponseDto
             {
                 AccessToken = newAccessToken.Token,
                 AccessTokenExpiresAt = newAccessToken.ExpiresAt
-            },
-            HttpStatusCode.OK);
+            };
     }
 }

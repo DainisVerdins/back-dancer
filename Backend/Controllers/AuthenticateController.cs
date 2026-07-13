@@ -73,7 +73,7 @@ public class AuthenticateController : ControllerBase
 
     [HttpPost("refresh-token")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(BaseResponse<SignInResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(SignInResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command, CancellationToken cancellationToken)
@@ -83,12 +83,12 @@ public class AuthenticateController : ControllerBase
         if (string.IsNullOrEmpty(refreshToken))
         {
             _logger.LogWarning("Refresh token cookie not found");
-            return StatusCode((int)HttpStatusCode.Unauthorized, new BaseResponse<SignInResponseDto>(ErrorMessages.GetMessage(ErrorCode.RefreshTokenInCookieNotFound), HttpStatusCode.Unauthorized));
+            throw new UnauthorizedException("Refresh token cookie not found");
         }
 
         var response = await _mediator.Send(command, cancellationToken);
 
-        return StatusCode((int)response.StatusCode, response);
+        return Ok(response);
     }
 
     [HttpPost("change-password")]
