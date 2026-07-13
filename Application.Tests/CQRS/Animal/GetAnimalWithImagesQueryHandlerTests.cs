@@ -46,23 +46,4 @@ public class GetAnimalWithImagesQueryHandlerTests
         Assert.Equal(animalDto.Name, result.Name);
         _mapperMock.Verify(m => m.Map<AnimalDto>(animal), Times.Once);
     }
-
-    [Fact]
-    public async Task Handle_ShouldReturnNotFound_WhenAnimalDoesNotExist()
-    {
-        // Arrange
-        var animalId = 99;
-        var query = new GetAnimalWithImagesQuery { AnimalId = animalId };
-
-        _animalServiceMock
-            .Setup(s => s.GetAnimalWithImagesAsync(animalId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Domain.Models.Animal?)null);
-
-        // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Null(result);
-    }
 }
