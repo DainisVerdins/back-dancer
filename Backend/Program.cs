@@ -10,6 +10,7 @@ using Infrastructure.Settings;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -127,9 +128,15 @@ public class Program
                     if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
                         errorMessage = $"Too many requests. Please try again after {retryAfter.TotalMinutes} minute(s).";
 
-                    await context.HttpContext.Response.WriteAsJsonAsync(
-                             new BaseResponse<Unit>(errorMessage, HttpStatusCode.TooManyRequests), cancellationToken);
+                    var problemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status429TooManyRequests,
+                        Title = "Too many requests",
+                        Detail = errorMessage,
+                        Type = "https://httpstatuses.com/429"
+                    };
 
+                    await context.HttpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
                 };
                 options.AddFixedWindowLimiter("FixedPolicy", opt =>
                 {
@@ -143,6 +150,10 @@ public class Program
             // add fluent validators
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+            // custom middleware
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+            builder.Services.AddProblemDetails();
 
             var app = builder.Build();
 
@@ -185,7 +196,7 @@ public class Program
                 context.Response.Headers.Append("Referrer-Policy", "no-referrer");
                 await next();
             });
-            app.UseMiddleware<ExceptionMiddleware>();
+            app.UseExceptionHandler();
             app.UseMiddleware<ForcePasswordChangeMiddleware>();
             app.UseCors("FrontendPolicy");
             app.UseRateLimiter();
