@@ -61,19 +61,15 @@ public class AnimalController : Controller
     }
 
     [HttpGet("")]
-    [ProducesResponseType(typeof(BaseResponse<PaginatedList<AnimalDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PaginatedList<AnimalDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PaginatedList<AnimalDto>>> GetAllAnimalsForTable(
     [FromQuery] PaginationParams paging,
     [FromQuery] AnimalFilterViewModel filter,
     CancellationToken ct = default)
     {
-        var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
         var query = new GetAllAnimalsQuery { Filter = filter, Paging = paging };
         var response = await _mediator.Send(query, ct);
-
-        if (!response.IsSuccess)
-            return StatusCode((int)response.StatusCode, response);
 
         return Ok(response);
     }
