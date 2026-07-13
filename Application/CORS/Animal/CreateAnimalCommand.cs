@@ -1,5 +1,4 @@
-﻿using Application.Entities.Common;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Interfaces.Services;
 using Application.ViewModels.Animal;
 using AutoMapper;
@@ -8,12 +7,12 @@ using MediatR;
 
 namespace Application.CORS.Animal;
 
-public class CreateAnimalCommand : IRequest<BaseResponse<int>>
+public class CreateAnimalCommand : IRequest<int>
 {
     public required CreateAnimalViewModel Model { get; init; }
 }
 
-public class CreateAnimalCommandHandler : IRequestHandler<CreateAnimalCommand, BaseResponse<int>>
+public class CreateAnimalCommandHandler : IRequestHandler<CreateAnimalCommand, int>
 {
 
     private readonly IUnitOfWork _uow;
@@ -27,7 +26,7 @@ public class CreateAnimalCommandHandler : IRequestHandler<CreateAnimalCommand, B
         _fileService = fileService;
     }
 
-    public async Task<BaseResponse<int>> Handle(CreateAnimalCommand request, CancellationToken ct)
+    public async Task<int> Handle(CreateAnimalCommand request, CancellationToken ct)
     {
         var animal = _mapper.Map<Domain.Models.Animal>(request.Model);
 
@@ -55,6 +54,6 @@ public class CreateAnimalCommandHandler : IRequestHandler<CreateAnimalCommand, B
         await _uow.Animals.AddAsync(animal, ct);
         await _uow.SaveChangesAsync(ct);
 
-        return new BaseResponse<int>(animal.Id);
+        return animal.Id;
     }
 }

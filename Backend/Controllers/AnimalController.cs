@@ -31,19 +31,16 @@ public class AnimalController : Controller
     /// <param name="cancellationToken"></param>
     /// <returns>id of created animal record</returns>
     [HttpPost("")]
-    [ProducesResponseType(typeof(BaseResponse<int>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Authorize(Roles = $"{UserRole.SuperAdmin}, {UserRole.Admin}, {UserRole.ShelterWorker}")]
     public async Task<IActionResult> CreateAnimal([FromForm] CreateAnimalViewModel model, CancellationToken cancellationToken)
     {
         var command = new CreateAnimalCommand { Model = model };
-        var response = await _mediator.Send(command, cancellationToken);
+        var id = await _mediator.Send(command, cancellationToken);
 
-        if (!response.IsSuccess)
-            return StatusCode((int)response.StatusCode, response);
-
-        return Ok(response);
+        return CreatedAtAction(nameof(CreateAnimal), new { id, version = "1.0" }, id);
     }
 
     [HttpGet("{id}")]
