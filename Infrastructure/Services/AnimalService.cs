@@ -20,10 +20,10 @@ public class AnimalService : IAnimalService
     public async Task<PaginatedList<Animal>> GetAnimalsAsync(AnimalsFilter filter, PaginationParams pagination, CancellationToken ct = default)
     {
         if (filter is null)
-            throw new ArgumentNullException(nameof(filter));
+            throw new ArgumentNullException(nameof(filter), ErrorMessages.GetArgumentMessage(ArgumentErrorCode.ArgumentIsEmpty));
 
         if (pagination is null)
-            throw new ArgumentNullException(nameof(pagination));
+            throw new ArgumentNullException(nameof(pagination), ErrorMessages.GetArgumentMessage(ArgumentErrorCode.ArgumentIsEmpty));
 
         return await _uow.Animals.GetPagginatedListAsync(filter, pagination, ct);
     }

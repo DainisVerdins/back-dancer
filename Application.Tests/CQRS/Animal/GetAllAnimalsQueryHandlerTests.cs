@@ -46,9 +46,8 @@ public class GetAllAnimalsQueryHandlerTests
 
         // Assert
         result.Should().NotBeNull();
-        result.StatusCode.Should().Be(HttpStatusCode.OK);
-        result.Data.Items.Count.Should().Be(1);
-        result.Data.Items.First().Name.Should().Be("Test");
+        result.Items.Count.Should().Be(1);
+        result.Items.First().Name.Should().Be("Test");
 
         _animalServiceMock.Verify(s => s.GetAnimalsAsync(It.IsAny<AnimalsFilter>(), paging, It.IsAny<CancellationToken>()), Times.Once);
     }
