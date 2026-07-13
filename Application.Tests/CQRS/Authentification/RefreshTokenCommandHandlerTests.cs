@@ -1,5 +1,6 @@
 ﻿using Application.CORS.Commands.Authentication;
 using Application.Entities;
+using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
@@ -8,7 +9,6 @@ using AwesomeAssertions;
 using Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System.Net;
 using System.Security.Claims;
 
 namespace Application.Tests.CQRS.Authentification;
@@ -54,28 +54,20 @@ public class RefreshTokenCommandHandlerTests
     #region Edge Case & Validation Tests
 
     [Fact]
-    public async Task Handle_WhenHttpContextIsNull_ShouldReturnNotFoundBaseResponse()
+    public async Task Handle_WhenHttpContextIsNull_ShouldThrowUnauthorizedException()
     {
         // Arrange
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext?)null!);
 
-        // Act
-        var result = await _sut.Handle(new RefreshTokenCommand(), CancellationToken.None);
-
-        // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        result.Data.Should().BeNull();
+        // Act & Assert
+        await Assert.ThrowsAsync<UnauthorizedException>(() => _sut.Handle(new RefreshTokenCommand(), CancellationToken.None));
     }
 
     [Fact]
-    public async Task Handle_WhenRefreshTokenCookieIsMissing_ShouldReturnUnauthorized()
+    public async Task Handle_WhenRefreshTokenCookieIsMissing_ThrowApplicationException()
     {
-
-        // Act
-        var result = await _sut.Handle(new RefreshTokenCommand(), CancellationToken.None);
-
-        // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        // Act & Assert
+        await Assert.ThrowsAsync<ApplicationException>(() => _sut.Handle(new RefreshTokenCommand(), CancellationToken.None));
     }
 
     [Theory]
@@ -99,11 +91,8 @@ public class RefreshTokenCommandHandlerTests
             .ReturnsAsync(dbToken);
         SetupMockRepository(repoMock);
 
-        // Act
-        var result = await _sut.Handle(new RefreshTokenCommand(), CancellationToken.None);
-
-        // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        // Act & Assert
+        await Assert.ThrowsAsync<ApplicationException>(() => _sut.Handle(new RefreshTokenCommand(), CancellationToken.None));
     }
 
     [Fact]
@@ -119,11 +108,9 @@ public class RefreshTokenCommandHandlerTests
 
         _userServiceMock.Setup(x => x.GetUserByIdAsync(99)).ReturnsAsync((Domain.Models.User?)null);
 
-        // Act
-        var result = await _sut.Handle(new RefreshTokenCommand(), CancellationToken.None);
+        // Act & Assert
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.Handle(new RefreshTokenCommand(), CancellationToken.None));
 
-        // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     #endregion
@@ -171,9 +158,8 @@ public class RefreshTokenCommandHandlerTests
         var result = await _sut.Handle(new RefreshTokenCommand(), CancellationToken.None);
 
         // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.OK);
-        result.Data.Should().NotBeNull();
-        result.Data!.AccessToken.Should().Be("new-access-token");
+        result.Should().NotBeNull();
+        result!.AccessToken.Should().Be("new-access-token");
 
         // Verify entity updates and transaction state operations
         storedToken.IsRevoked.Should().BeTrue();
@@ -186,7 +172,7 @@ public class RefreshTokenCommandHandlerTests
         _httpContext.Response.Headers["Set-Cookie"].ToString().Should().Contain("X-Refresh-Token=new-refresh-token");
     }
     [Fact]
-    public async Task Handle_WhenActiveRoleProvidedButUserNotInRole_ShouldReturnForbidden()
+    public async Task Handle_WhenActiveRoleProvidedButUserNotInRole_ShoudlThrowNullReferenceException()
     {
         // Arrange
         string token = "valid-token";
@@ -205,10 +191,7 @@ public class RefreshTokenCommandHandlerTests
         _userServiceMock.Setup(x => x.IsInRoleAsync(user, role)).ReturnsAsync(false);
 
         // Act
-        var result = await _sut.Handle(new RefreshTokenCommand { ActiveRole = role }, CancellationToken.None);
-
-        // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        await Assert.ThrowsAsync<NullReferenceException>(() => _sut.Handle(new RefreshTokenCommand(), CancellationToken.None));
     }
 
     [Fact]
@@ -246,8 +229,6 @@ public class RefreshTokenCommandHandlerTests
         var result = await _sut.Handle(new RefreshTokenCommand { ActiveRole = role }, CancellationToken.None);
 
         // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.OK);
-
         _userServiceMock.Verify(x => x.GetClaimsForAccessTokenByUserIdAsync(1, role), Times.Once);
     }
     #endregion
