@@ -1,12 +1,8 @@
-﻿using Application.Entities.Common;
+﻿using Application.Exceptions;
 using Asp.Versioning;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace WebApi.Controllers;
 
@@ -26,12 +22,12 @@ public class LookupController : Controller
     /// <param name="enumName">enum name to whom get list of items</param>
     /// <returns>collection of SelectListItems</returns>
     [HttpGet("{enumName}")]
-    [ProducesResponseType(typeof(BaseResponse<List<SelectListItem>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<SelectListItem>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public IActionResult GetEnumOptions(string enumName)
     {
         if (string.IsNullOrEmpty(enumName))
-            return NotFound($"enumValue was not provided.");
+            throw new ArgumentException("enumValue was not provided.");
 
         var enumTypes = new Dictionary<string, Type>
         {
@@ -41,7 +37,7 @@ public class LookupController : Controller
         };
 
         if (!enumTypes.TryGetValue(enumName.ToLower(), out var enumType))
-            return NotFound($"Enum {enumName} not found.");
+            throw new NotFoundException($"Enum {enumName} was not found.");
 
         var selectListItems = Enum.GetValues(enumType)
             .Cast<Enum>()
@@ -52,7 +48,7 @@ public class LookupController : Controller
             })
             .ToList();
 
-        var successResponse = new BaseResponse<List<SelectListItem>>(selectListItems);
+        var successResponse = new List<SelectListItem>(selectListItems);
 
         return Ok(successResponse);
     }
