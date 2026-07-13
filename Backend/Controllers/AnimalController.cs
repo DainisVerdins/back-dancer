@@ -97,18 +97,15 @@ public class AnimalController : Controller
 
     [HttpDelete("{id}")]
     [Authorize(Roles = $"{UserRole.SuperAdmin}, {UserRole.Admin}, {UserRole.ShelterWorker}")]
-    [ProducesResponseType(typeof(BaseResponse<Unit>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Unit>> DeleteAnimal(
     [FromRoute] int id,
     CancellationToken ct = default)
     {
         var command = new DeleteAnimalCommand { Id = id };
-        var response = await _mediator.Send(command, ct);
+        await _mediator.Send(command, ct);
 
-        if (!response.IsSuccess)
-            return StatusCode((int)response.StatusCode, response);
-
-        return Ok(response);
+        return Ok();
     }
 }

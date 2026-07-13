@@ -4,6 +4,7 @@ using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Domain.Models;
 using Moq;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 
 namespace Application.Tests.CQRS.Animal;
@@ -28,21 +29,6 @@ public class DeleteAnimalCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnNotFound_WhenAnimalDoesNotExist()
-    {
-        // Arrange
-        var command = new DeleteAnimalCommand { Id = 99 };
-        _animalServiceMock.Setup(s => s.GetAnimalWithImagesAsync(99, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Domain.Models.Animal?)null);
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
-    }
-
-    [Fact]
     public async Task Handle_ShouldDeleteImagesAndAnimal_WhenExists()
     {
         // Arrange
@@ -54,7 +40,7 @@ public class DeleteAnimalCommandHandlerTests
             .ReturnsAsync(animal);
 
         // Act
-        var result = await _handler.Handle(new DeleteAnimalCommand { Id = animalId }, CancellationToken.None);
+        await _handler.Handle(new DeleteAnimalCommand { Id = animalId }, CancellationToken.None);
 
         // Assert
         _fileServiceMock.Verify(s => s.DeleteFileAsync("test-key", It.IsAny<CancellationToken>()), Times.Once);
@@ -62,16 +48,15 @@ public class DeleteAnimalCommandHandlerTests
         _uowMock.Verify(u => u.Animals.Remove(animal), Times.Once);
 
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowArgumentException_WhenIdIsInvalid()
+    public async Task Handle_ShouldThrowValidationException_WhenIdIsInvalid()
     {
         // Arrange
         var command = new DeleteAnimalCommand { Id = 0 };
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, CancellationToken.None));
+        await Assert.ThrowsAsync<Exceptions.ValidationException>(() => _handler.Handle(command, CancellationToken.None));
     }
 }
