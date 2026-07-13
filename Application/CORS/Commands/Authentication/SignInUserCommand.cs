@@ -1,5 +1,4 @@
 ﻿using Application.Dtos;
-using Application.Entities.Common;
 using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Services;
@@ -9,17 +8,16 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;
-using System.Net;
 
 namespace Application.CORS.Commands.Authentication;
 
-public class SignInUserCommand : IRequest<BaseResponse<SignInResponseDto>>
+public class SignInUserCommand : IRequest<SignInResponseDto>
 {
     [Required]
     public required SignInViewModel Model { get; init; }
 }
 
-public class SignInUserCommandHandler : IRequestHandler<SignInUserCommand, BaseResponse<SignInResponseDto>>
+public class SignInUserCommandHandler : IRequestHandler<SignInUserCommand, SignInResponseDto>
 {
 
     private readonly IUserService _userService;
@@ -38,29 +36,28 @@ public class SignInUserCommandHandler : IRequestHandler<SignInUserCommand, BaseR
         _logger = logger;
     }
 
-    public async Task<BaseResponse<SignInResponseDto>> Handle(SignInUserCommand request, CancellationToken cancellationToken)
+    public async Task<SignInResponseDto> Handle(SignInUserCommand request, CancellationToken cancellationToken)
     {
         var user = await _userService.GetUserByEmailAsync(request.Model.Email);
         if (user is null)
-            return new BaseResponse<SignInResponseDto>(null, ErrorMessages.GetMessage(ErrorCode.UserNotFound), HttpStatusCode.NotFound);
-
+            throw new NotFoundException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
 
         if (_httpContextAccessor?.HttpContext is null)
-            return new BaseResponse<SignInResponseDto>(null, ErrorMessages.GetMessage(ErrorCode.NotFound), HttpStatusCode.NotFound);
+            throw new Exceptions.ValidationException(ErrorMessages.GetMessage(ErrorCode.NotFound));
 
 
         if (await _userService.IsLockedOutAsync(user))
         {
             _logger.LogWarning("User {modelEmail} is locked out.", request.Model.Email);
 
-            return new BaseResponse<SignInResponseDto>(null, ErrorMessages.GetMessage(ErrorCode.UserBlocked), HttpStatusCode.Unauthorized);
+            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.UserBlocked));
         }
 
         if (!await _userService.CheckPasswordAsync(user, request.Model.Password))
         {
             await _userService.IncrementAccessFailedCountAsync(user);
 
-            return new BaseResponse<SignInResponseDto>(null, ErrorMessages.GetMessage(ErrorCode.InvalidPassword), HttpStatusCode.BadRequest);
+            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.InvalidPassword));
         }
 
         await _userService.ResetAccessFailedCountAsync(user);
@@ -89,10 +86,10 @@ public class SignInUserCommandHandler : IRequestHandler<SignInUserCommand, BaseR
             Expires = refreshToken.ExpiresAt
         });
 
-        return new BaseResponse<SignInResponseDto>(new SignInResponseDto
+        return new SignInResponseDto
         {
             AccessToken = accessToken.Token,
             AccessTokenExpiresAt = accessToken.ExpiresAt,
-        }, HttpStatusCode.OK);
+        };
     }
 }

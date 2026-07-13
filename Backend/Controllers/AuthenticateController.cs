@@ -37,22 +37,18 @@ public class AuthenticateController : ControllerBase
 
     [HttpPost]
     [Route("sign-in")]
-    [ProducesResponseType(typeof(BaseResponse<SignInResponseDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(SignInResponseDto), StatusCodes.Status200OK)]
     [AllowAnonymous]
     [EnableRateLimiting("FixedPolicy")]
     public async Task<IActionResult> SignIn([FromBody] SignInViewModel model, CancellationToken cancellationToken)
     {
         var passwordValidationErrors = await _passwordService.ValidatePasswordAsync(model.Password);
         if (passwordValidationErrors.Count > 0)
-            return StatusCode((int)HttpStatusCode.Unauthorized, new BaseResponse<SignInResponseDto>(null, passwordValidationErrors, HttpStatusCode.BadRequest));
+            throw new ValidationException(passwordValidationErrors);
 
         var response = await _mediator.Send(new SignInUserCommand { Model = model }, cancellationToken);
 
-        if (!response.IsSuccess)
-            return StatusCode((int)HttpStatusCode.BadRequest, new BaseResponse<SignInResponseDto>(null, response.ErrorMessages, HttpStatusCode.BadRequest));
-
-        return StatusCode((int)response.StatusCode, response);
+        return Ok(response);
     }
 
     [HttpDelete("sign-out")]
