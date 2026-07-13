@@ -97,19 +97,13 @@ public class AuthenticateController : ControllerBase
 
     [HttpPost("change-password")]
     [Authorize]
-    [ProducesResponseType(typeof(BaseResponse<Unit>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordViewModel request)
     {
         var command = new ChangePasswordCommand(request.OldPassword, request.NewPassword);
-        var response = await _mediator.Send(command);
+        await _mediator.Send(command);
 
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            return Unauthorized(response);
-
-        if (response.StatusCode == HttpStatusCode.BadRequest)
-            return BadRequest(response);
-
-        return Ok(response);
+        return Ok();
     }
 }
