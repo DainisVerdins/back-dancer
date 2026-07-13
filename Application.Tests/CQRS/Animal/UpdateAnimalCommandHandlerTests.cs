@@ -56,7 +56,7 @@ public class UpdateAnimalCommandHandlerTests
             .ReturnsAsync(animal);
 
         // 2. Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        await _handler.Handle(command, CancellationToken.None);
 
         // 3. Assert
         _fileServiceMock.Verify(s => s.DeleteFileAsync("key-2", It.IsAny<CancellationToken>()), Times.Once);
