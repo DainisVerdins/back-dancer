@@ -1,17 +1,15 @@
-﻿using Application.Entities.Common;
-using Application.Exceptions;
+﻿using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Services;
 using MediatR;
-using System.Net;
 
 namespace Application.CORS.Commands.Authentication;
 
-public class SignOutUserCommand : IRequest<BaseResponse<Unit>>
+public class SignOutUserCommand : IRequest
 {
 }
 
-public class SignOutUserCommandHandler : IRequestHandler<SignOutUserCommand, BaseResponse<Unit>>
+public class SignOutUserCommandHandler : IRequestHandler<SignOutUserCommand>
 {
 
     private readonly IUserService _userService;
@@ -23,11 +21,11 @@ public class SignOutUserCommandHandler : IRequestHandler<SignOutUserCommand, Bas
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<BaseResponse<Unit>> Handle(SignOutUserCommand request, CancellationToken cancellationToken)
+    public async Task Handle(SignOutUserCommand request, CancellationToken cancellationToken)
     {
         var user = await _userService.GetCurrentUserAsync();
         if (user is null)
-            return new BaseResponse<Unit>(Unit.Value, ErrorMessages.GetMessage(ErrorCode.UserNotFound), HttpStatusCode.NotFound);
+            throw new NotFoundException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
 
         var userRefreshTokens = _unitOfWork.RefreshTokens.Find(x => x.UserId == user.Id && !x.IsRevoked).ToList();
 
@@ -35,7 +33,5 @@ public class SignOutUserCommandHandler : IRequestHandler<SignOutUserCommand, Bas
             userRefreshToken.IsRevoked = true;
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return new BaseResponse<Unit>(Unit.Value, HttpStatusCode.OK);
     }
 }

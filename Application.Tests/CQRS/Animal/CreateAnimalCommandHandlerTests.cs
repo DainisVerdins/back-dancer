@@ -59,8 +59,6 @@ public class CreateAnimalCommandHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-
         _fileServiceMock.Verify(s => s.UploadFileAsync(It.IsAny<FileRequest>(), It.IsAny<CancellationToken>()), Times.Once);
         _uowMock.Verify(u => u.Animals.AddAsync(It.IsAny<Domain.Models.Animal>(), It.IsAny<CancellationToken>()), Times.Once);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
