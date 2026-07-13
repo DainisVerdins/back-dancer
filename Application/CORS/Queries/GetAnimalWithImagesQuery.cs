@@ -1,18 +1,16 @@
 ﻿using Application.Dtos.Animal;
-using Application.Entities.Common;
 using Application.Exceptions;
 using Application.Interfaces.Services;
 using AutoMapper;
 using MediatR;
-using System.Net;
 
 namespace Application.CORS.Queries;
 
-public class GetAnimalWithImagesQuery : IRequest<BaseResponse<AnimalDto>>
+public class GetAnimalWithImagesQuery : IRequest<AnimalDto>
 {
     public required int AnimalId { get; init; }
 }
-public class GetAnimalWithImagesQueryHandler : IRequestHandler<GetAnimalWithImagesQuery, BaseResponse<AnimalDto>>
+public class GetAnimalWithImagesQueryHandler : IRequestHandler<GetAnimalWithImagesQuery, AnimalDto>
 {
     private readonly IAnimalService _animalService;
     private readonly IMapper _mapper;
@@ -24,14 +22,14 @@ public class GetAnimalWithImagesQueryHandler : IRequestHandler<GetAnimalWithImag
         _mapper = mapper;
     }
 
-    public async Task<BaseResponse<AnimalDto>> Handle(GetAnimalWithImagesQuery request, CancellationToken cancellationToken)
+    public async Task<AnimalDto> Handle(GetAnimalWithImagesQuery request, CancellationToken cancellationToken)
     {
         var result = await _animalService.GetAnimalWithImagesAsync(request.AnimalId, cancellationToken);
         if (result is null)
-            return new BaseResponse<AnimalDto>(null, ErrorMessages.GetApiErrorMessage(ApiErrorCode.EntityDoesNotExist), HttpStatusCode.NotFound);
+            throw new NotFoundException(ErrorMessages.GetApiErrorMessage(ApiErrorCode.EntityDoesNotExist));
 
         var output = _mapper.Map<AnimalDto>(result);
 
-        return new BaseResponse<AnimalDto>(output);
+        return output;
     }
 }

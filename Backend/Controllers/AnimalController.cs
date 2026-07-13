@@ -47,15 +47,12 @@ public class AnimalController : Controller
     }
 
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(BaseResponse<PaginatedList<AnimalDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AnimalDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<AnimalDto>> GetAnimal(int id, CancellationToken ct = default)
     {
         var query = new GetAnimalWithImagesQuery { AnimalId = id };
         var response = await _mediator.Send(query, ct);
-
-        if (!response.IsSuccess)
-            return StatusCode((int)response.StatusCode, response);
 
         return Ok(response);
     }
