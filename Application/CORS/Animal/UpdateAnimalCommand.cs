@@ -1,21 +1,19 @@
-﻿using Application.Entities.Common;
-using Application.Exceptions;
+﻿using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Services;
 using Application.ViewModels.Animal;
 using AutoMapper;
 using Domain.Models;
 using MediatR;
-using System.Net;
 
 namespace Application.CORS.Animal;
 
-public class UpdateAnimalCommand : IRequest<BaseResponse<Unit>>
+public class UpdateAnimalCommand : IRequest
 {
     public required UpdateAnimalViewModel Model { get; init; }
 }
 
-public class UpdateAnimalCommandHandler : IRequestHandler<UpdateAnimalCommand, BaseResponse<Unit>>
+public class UpdateAnimalCommandHandler : IRequestHandler<UpdateAnimalCommand>
 {
 
     private readonly IUnitOfWork _uow;
@@ -31,12 +29,12 @@ public class UpdateAnimalCommandHandler : IRequestHandler<UpdateAnimalCommand, B
         _animalService = animalService;
     }
 
-    public async Task<BaseResponse<Unit>> Handle(UpdateAnimalCommand request, CancellationToken ct)
+    public async Task Handle(UpdateAnimalCommand request, CancellationToken ct)
     {
 
         var animalToUpdate = await _animalService.GetAnimalWithImagesAsync(request.Model.Id, ct);
         if (animalToUpdate is null)
-            return new BaseResponse<Unit>(Unit.Value, ErrorMessages.GetApiErrorMessage(ApiErrorCode.EntityDoesNotExist), System.Net.HttpStatusCode.NotFound);
+            throw new NotFoundException(ErrorMessages.GetApiErrorMessage(ApiErrorCode.EntityDoesNotExist));
 
         _mapper.Map(request.Model, animalToUpdate);
 
@@ -74,7 +72,5 @@ public class UpdateAnimalCommandHandler : IRequestHandler<UpdateAnimalCommand, B
 
         _uow.Animals.Update(animalToUpdate);
         await _uow.SaveChangesAsync(ct);
-
-        return new BaseResponse<Unit>(Unit.Value, HttpStatusCode.OK);
     }
 }

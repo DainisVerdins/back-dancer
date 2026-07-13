@@ -79,26 +79,26 @@ public class AnimalController : Controller
     }
 
     [HttpPut("")]
-    [ProducesResponseType(typeof(BaseResponse<Unit>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+
     [Authorize(Roles = $"{UserRole.SuperAdmin}, {UserRole.Admin}, {UserRole.ShelterWorker}")]
     public async Task<ActionResult<Unit>> UpdateAnimal(
     [FromForm] UpdateAnimalViewModel model,
     CancellationToken ct = default)
     {
         var command = new UpdateAnimalCommand { Model = model };
-        var response = await _mediator.Send(command, ct);
+        await _mediator.Send(command, ct);
 
-        if (!response.IsSuccess)
-            return StatusCode((int)response.StatusCode, response);
-
-        return Ok(response);
+        return Ok();
     }
 
     [HttpDelete("{id}")]
     [Authorize(Roles = $"{UserRole.SuperAdmin}, {UserRole.Admin}, {UserRole.ShelterWorker}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Unit>> DeleteAnimal(
     [FromRoute] int id,
     CancellationToken ct = default)
