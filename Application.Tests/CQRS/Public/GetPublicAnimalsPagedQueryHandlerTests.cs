@@ -43,9 +43,8 @@ public class GetPublicAnimalsPagedQueryHandlerTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-        Assert.Single(result.Data.Items);
-        Assert.Equal("Test", result.Data.Items.First().Name);
+        Assert.Single(result.Items);
+        Assert.Equal("Test", result.Items.First().Name);
         _animalServiceMock.Verify(s => s.GetPublicAnimalsAsync(paging, It.IsAny<CancellationToken>()), Times.Once);
     }
 
