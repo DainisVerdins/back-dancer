@@ -2,7 +2,7 @@
 using Application.CORS.Queries;
 using Application.Dtos;
 using Application.Entities;
-using Application.Entities.Common;
+using Application.Exceptions;
 using Application.ViewModels;
 using Asp.Versioning;
 using MediatR;
@@ -29,22 +29,21 @@ public class MeController : Controller
     /// Get list of available roles for current user
     /// </summary>
     [HttpGet("available-roles")]
-    [ProducesResponseType(typeof(BaseResponse<IEnumerable<RoleDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<RoleDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetAvailableRoles()
+    public async Task<IActionResult> GetAvailableRoles(CancellationToken cancellationToken = default)
     {
         var userId = User.FindFirstValue(Application.Constants.CustomClaimType.UserId);
 
         if (string.IsNullOrEmpty(userId))
-            return Unauthorized();
+            throw new UnauthorizedException("Claims does not contain userId!");
 
         var id = 0;
         if (!int.TryParse(userId, out id))
-            return BadRequest("Failed to get id of current user");
+            throw new ApplicationException("Failed to get id of current user");
 
-        var query = new GetAvailableRolesQuery { UserId = id };
-        var result = await _mediator.Send(query);
+        var result = await _mediator.Send(new GetAvailableRolesQuery { UserId = id }, cancellationToken);
 
         return Ok(result);
     }
@@ -56,16 +55,13 @@ public class MeController : Controller
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost("select-role")]
-    [ProducesResponseType(typeof(BaseResponse<TokenResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(TokenResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> SelectRole([FromBody] SelectRoleViewModel model, CancellationToken cancellationToken)
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> SelectRole([FromBody] SelectRoleViewModel model, CancellationToken cancellationToken = default)
     {
-        var command = new SelectUserRoleCommand { RoleCode = model.RoleCode };
-        var response = await _mediator.Send(command);
-
-        if (!response.IsSuccess)
-            return StatusCode((int)response.StatusCode, response);
+        var response = await _mediator.Send(new SelectUserRoleCommand { RoleCode = model.RoleCode }, cancellationToken);
 
         return Ok(response);
     }
@@ -76,14 +72,11 @@ public class MeController : Controller
     /// <param name="cancellationToken"></param>
     /// <returns>User Profile</returns>
     [HttpGet("profile")]
-    [ProducesResponseType(typeof(BaseResponse<UserDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetProfile(CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetProfile(CancellationToken cancellationToken = default)
     {
         var response = await _mediator.Send(new GetCurrentUserQuery(), cancellationToken);
-
-        if (!response.IsSuccess)
-            return StatusCode((int)response.StatusCode, response);
 
         return Ok(response);
     }

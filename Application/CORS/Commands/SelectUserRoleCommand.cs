@@ -1,22 +1,19 @@
 ﻿using Application.Constants;
 using Application.Entities;
-using Application.Entities.Common;
 using Application.Exceptions;
 using Application.Interfaces.Services;
 using Domain.Models;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using System.Net;
-using System.Security.Claims;
 
 namespace Application.CORS.Commands;
 
-public class SelectUserRoleCommand : IRequest<BaseResponse<TokenResponse>>
+public class SelectUserRoleCommand : IRequest<TokenResponse>
 {
     public required string RoleCode { get; init; }
 }
 
-public class SelectUserRoleCommandHandler : IRequestHandler<SelectUserRoleCommand, BaseResponse<TokenResponse>>
+public class SelectUserRoleCommandHandler : IRequestHandler<SelectUserRoleCommand, TokenResponse>
 {
     private readonly IUserService _userService;
     private readonly IJwtTokenService _jwtTokenService;
@@ -32,23 +29,21 @@ public class SelectUserRoleCommandHandler : IRequestHandler<SelectUserRoleComman
         _userManager = userManager;
     }
 
-    public async Task<BaseResponse<TokenResponse>> Handle(SelectUserRoleCommand request, CancellationToken cancellationToken)
+    public async Task<TokenResponse> Handle(SelectUserRoleCommand request, CancellationToken cancellationToken)
     {
         var user = await _userService.GetCurrentUserAsync();
         if (user == null)
-            return new BaseResponse<TokenResponse>(ErrorMessages.GetMessage(ErrorCode.UserNotFound), HttpStatusCode.Unauthorized);
+            throw new NotFoundException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
 
         if (!UserRole.GetRoleNames().Contains(request.RoleCode))
-            return new BaseResponse<TokenResponse>(ErrorMessages.GetApiErrorMessage(ApiErrorCode.EntityDoesNotExist), HttpStatusCode.BadRequest);
+            throw new ValidationException(ErrorMessages.GetApiErrorMessage(ApiErrorCode.EntityDoesNotExist));
 
         var isUserInRole = await _userManager.IsInRoleAsync(user, request.RoleCode);
         if (!isUserInRole)
-            return new BaseResponse<TokenResponse>(ErrorMessages.GetMessage(ErrorCode.OperationFailed), HttpStatusCode.Forbidden);
+            throw new ValidationException($"User does not have provided role: {request.RoleCode}");
 
         var claims = await _userService.GetClaimsForAccessTokenByUserIdAsync(user.Id, request.RoleCode);
 
-        var tokenResponse = _jwtTokenService.GenerateAccessToken(claims);
-
-        return new BaseResponse<TokenResponse>(tokenResponse);
+        return _jwtTokenService.GenerateAccessToken(claims);
     }
 }
