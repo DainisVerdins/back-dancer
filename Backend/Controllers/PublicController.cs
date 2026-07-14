@@ -24,7 +24,7 @@ public class PublicController : Controller
 
     [HttpGet("animals")]
     [EnableRateLimiting("FixedPolicy")]
-    [ProducesResponseType(typeof(BaseResponse<PaginatedList<PublicAnimalDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PaginatedList<PublicAnimalDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PaginatedList<AnimalDto>>> GetPaginatedPublicAnimal(
     [FromQuery] PaginationParams paging,
@@ -32,9 +32,6 @@ public class PublicController : Controller
     {
         var query = new GetPublicAnimalsPagedQuery { Paging = paging };
         var response = await _mediator.Send(query, ct);
-
-        if (!response.IsSuccess)
-            return StatusCode((int)response.StatusCode, response);
 
         return Ok(response);
     }

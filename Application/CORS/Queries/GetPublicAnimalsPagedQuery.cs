@@ -3,16 +3,15 @@ using Application.Entities.Common;
 using Application.Interfaces.Services;
 using AutoMapper;
 using MediatR;
-using System.Net;
 
 namespace Application.CORS.Queries;
 
-public class GetPublicAnimalsPagedQuery : IRequest<BaseResponse<PaginatedList<PublicAnimalDto>>>
+public class GetPublicAnimalsPagedQuery : IRequest<PaginatedList<PublicAnimalDto>>
 {
     public required PaginationParams Paging { get; init; }
 }
 
-public class GetPublicAnimalsPagedQueryHandler : IRequestHandler<GetPublicAnimalsPagedQuery, BaseResponse<PaginatedList<PublicAnimalDto>>>
+public class GetPublicAnimalsPagedQueryHandler : IRequestHandler<GetPublicAnimalsPagedQuery, PaginatedList<PublicAnimalDto>>
 {
     private readonly IAnimalService _animalService;
     private readonly IMapper _mapper;
@@ -24,11 +23,10 @@ public class GetPublicAnimalsPagedQueryHandler : IRequestHandler<GetPublicAnimal
         _mapper = mapper;
     }
 
-    public async Task<BaseResponse<PaginatedList<PublicAnimalDto>>> Handle(GetPublicAnimalsPagedQuery request, CancellationToken cancellationToken)
+    public async Task<PaginatedList<PublicAnimalDto>> Handle(GetPublicAnimalsPagedQuery request, CancellationToken cancellationToken)
     {
         if (request.Paging is null)
             throw new ArgumentNullException(nameof(request.Paging));
-
 
         var result = await _animalService.GetPublicAnimalsAsync(request.Paging, cancellationToken);
 
@@ -37,8 +35,6 @@ public class GetPublicAnimalsPagedQueryHandler : IRequestHandler<GetPublicAnimal
             return _mapper.Map<PublicAnimalDto>(animal);
         }).ToList();
 
-        var output = new PaginatedList<PublicAnimalDto>(animalsDto, result.TotalCount, request.Paging.PageNumber, request.Paging.PageSize);
-
-        return new BaseResponse<PaginatedList<PublicAnimalDto>>(output, HttpStatusCode.OK);
+        return new PaginatedList<PublicAnimalDto>(animalsDto, result.TotalCount, request.Paging.PageNumber, request.Paging.PageSize);
     }
 }
