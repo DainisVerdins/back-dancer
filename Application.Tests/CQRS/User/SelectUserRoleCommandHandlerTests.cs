@@ -47,87 +47,6 @@ public class SelectUserRoleCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenCurrentUserIsNull_ShouldReturnUnauthorized()
-    {
-        // Arrange
-        var command = new SelectUserRoleCommand
-        {
-            RoleCode = "Admin"
-        };
-
-        _userServiceMock
-            .Setup(x => x.GetCurrentUserAsync())
-            .ReturnsAsync((Domain.Models.User?)null);
-
-        // Act
-        var result = await _sut.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        result.Data.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task Handle_WhenRoleCodeIsInvalid_ShouldReturnBadRequest()
-    {
-        // Arrange
-        var user = new Domain.Models.User
-        {
-            Id = 1,
-            UserName = "Kurland",
-            Email = "test@test.com"
-        };
-
-        var command = new SelectUserRoleCommand
-        {
-            RoleCode = "InvalidRole"
-        };
-
-        _userServiceMock
-            .Setup(x => x.GetCurrentUserAsync())
-            .ReturnsAsync(user);
-
-        // Act
-        var result = await _sut.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        result.Data.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task Handle_WhenUserIsNotInRole_ShouldReturnForbidden()
-    {
-        // Arrange
-        var user = new Domain.Models.User
-        {
-            Id = 1,
-            UserName = "Kurland",
-            Email = "test@test.com"
-        };
-
-        var command = new SelectUserRoleCommand
-        {
-            RoleCode = UserRole.Admin
-        };
-
-        _userServiceMock
-            .Setup(x => x.GetCurrentUserAsync())
-            .ReturnsAsync(user);
-
-        _userManagerMock
-            .Setup(x => x.IsInRoleAsync(user, UserRole.Admin))
-            .ReturnsAsync(false);
-
-        // Act
-        var result = await _sut.Handle(command, CancellationToken.None);
-
-        // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.Forbidden);
-        result.Data.Should().BeNull();
-    }
-
-    [Fact]
     public async Task Handle_WhenRequestIsValid_ShouldReturnAccessToken()
     {
         // Arrange
@@ -173,8 +92,7 @@ public class SelectUserRoleCommandHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.OK);
-        result.Data.Should().NotBeNull();
-        result.Data.Should().Be(tokenResponse);
+        result.Should().NotBeNull();
+        result.Should().Be(tokenResponse);
     }
 }

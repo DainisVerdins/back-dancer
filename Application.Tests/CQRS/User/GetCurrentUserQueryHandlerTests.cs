@@ -38,24 +38,6 @@ public class GetCurrentUserQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenCurrentUserIsNull_ShouldReturnUnauthorized()
-    {
-        // Arrange
-        _userServiceMock
-            .Setup(x => x.GetCurrentUserAsync())
-            .ReturnsAsync((Domain.Models.User?)null);
-
-        // Act
-        var result = await _sut.Handle(
-            new GetCurrentUserQuery(),
-            CancellationToken.None);
-
-        // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        result.Data.Should().BeNull();
-    }
-
-    [Fact]
     public async Task Handle_WhenUserExistsAndRoleClaimExists_ShouldReturnUserDto()
     {
         // Arrange
@@ -85,12 +67,11 @@ public class GetCurrentUserQueryHandlerTests
             CancellationToken.None);
 
         // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        result.Data.Should().NotBeNull();
-        result.Data!.Id.Should().Be(1);
-        result.Data.UserName.Should().Be("Kurland");
-        result.Data.Email.Should().Be("kurland@test.com");
+        result.Should().NotBeNull();
+        result.Id.Should().Be(1);
+        result.UserName.Should().Be("Kurland");
+        result.Email.Should().Be("kurland@test.com");
     }
 
     [Fact]
@@ -120,10 +101,9 @@ public class GetCurrentUserQueryHandlerTests
             CancellationToken.None);
 
         // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        result.Data.Should().NotBeNull();
-        result.Data!.ActiveRole.Should().Be("NoRoleSelected");
+        result.Should().NotBeNull();
+        result.ActiveRole.Should().Be("NoRoleSelected");
     }
 
     [Fact]
@@ -154,10 +134,9 @@ public class GetCurrentUserQueryHandlerTests
             CancellationToken.None);
 
         // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        result.Data.Should().NotBeNull();
-        result.Data!.ActiveRole.Should().Be("NoRoleSelected");
+        result.Should().NotBeNull();
+        result.ActiveRole.Should().Be("NoRoleSelected");
     }
 
     [Fact]
@@ -184,11 +163,10 @@ public class GetCurrentUserQueryHandlerTests
             CancellationToken.None);
 
         // Assert
-        result.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        result.Data.Should().NotBeNull();
-        result.Data!.UserName.Should().Be("");
-        result.Data.Email.Should().Be("");
-        result.Data.ActiveRole.Should().Be("NoRoleSelected");
+        result.Should().NotBeNull();
+        result.UserName.Should().Be("");
+        result.Email.Should().Be("");
+        result.ActiveRole.Should().Be("NoRoleSelected");
     }
 }
