@@ -1,17 +1,15 @@
 ﻿using Application.Constants;
 using Application.Dtos;
-using Application.Entities.Common;
 using Application.Exceptions;
 using Application.Interfaces.Services;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using System.Net;
 using System.Security.Claims;
 
 namespace Application.CORS.Queries;
 
-public class GetCurrentUserQuery : IRequest<BaseResponse<UserDto>>;
-public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, BaseResponse<UserDto>>
+public class GetCurrentUserQuery : IRequest<UserDto>;
+public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, UserDto>
 {
     private readonly IUserService _userService;
     private readonly IRoleService _roleService;
@@ -24,11 +22,11 @@ public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, B
         _roleService = roleService;
     }
 
-    public async Task<BaseResponse<UserDto>> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
+    public async Task<UserDto> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
     {
         var user = await _userService.GetCurrentUserAsync();
         if (user == null)
-            return new BaseResponse<UserDto>(ErrorMessages.GetMessage(ErrorCode.UserNotFound), HttpStatusCode.Unauthorized);
+            throw new NotFoundException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
 
         var contextUser = _httpContextAccessor.HttpContext?.User;
 
@@ -40,7 +38,7 @@ public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, B
         var requiresPasswordChange = contextUser?.HasClaim(c =>
             c.Type == CustomClaimType.ForceChangePassword && c.Value == "true") ?? false;
 
-        var userDto = new UserDto
+        return new UserDto
         {
             Id = user.Id,
             UserName = user.UserName ?? "",
@@ -49,7 +47,5 @@ public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, B
             AvailableRoles = [.. availableRoles.Select(ur => ur.RoleCode)],
             RequiresPasswordChange = requiresPasswordChange
         };
-
-        return new BaseResponse<UserDto>(userDto);
     }
 }
