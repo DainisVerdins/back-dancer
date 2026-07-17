@@ -33,7 +33,7 @@ public static class DependencyInjection
         /* Persistance */
         services.AddScoped<DatabaseInitializer>();
         services.AddDbContext<DataContext>(options =>
-               options.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
+               options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
