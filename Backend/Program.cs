@@ -1,6 +1,6 @@
 namespace WebApi;
+
 using Application;
-using Application.Entities.Common;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using FluentValidation;
@@ -16,7 +16,6 @@ using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using SQLitePCL;
 using System;
-using System.Net;
 using System.Reflection;
 using System.Threading.RateLimiting;
 using System.Threading.Tasks;
@@ -52,10 +51,6 @@ public class Program
             // https://www.claudiobernasconi.ch/2022/01/28/how-to-use-serilog-in-asp-net-core-web-api/ for precise logging
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog(logger);
-
-
-            // Initialize SQLitePCL
-            Batteries.Init();
 
             // project dependencies in Clean Architecture pattern
             builder.Services
@@ -184,7 +179,7 @@ public class Program
                 });
             }
 
-            
+
             app.UseHttpsRedirection();
             app.UseHsts();
             // security headers
