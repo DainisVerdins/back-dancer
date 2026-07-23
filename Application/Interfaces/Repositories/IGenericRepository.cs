@@ -1,5 +1,4 @@
 ﻿using Domain.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace Application.Interfaces.Repositories;
@@ -20,6 +19,5 @@ public interface IGenericRepository<T> where T : IEntity
     Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> expression, CancellationToken cancellationToken);
     Task RemoveByIdAsync(int id, CancellationToken cancellationToken);
     void RemoveById(int id);
-    DbContext GetDbContext();
     void Update(T entity);
 }

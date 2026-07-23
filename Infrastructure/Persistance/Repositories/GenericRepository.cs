@@ -16,10 +16,6 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class, IEnti
         _dbSet = _context.Set<T>();
     }
 
-    public DbContext GetDbContext()
-    {
-        return _context;
-    }
     public T? GetById(int id)
     {
         return _dbSet.Find(id);
