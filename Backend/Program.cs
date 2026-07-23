@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using SQLitePCL;
 using System;
 using System.Reflection;
 using System.Threading.RateLimiting;
