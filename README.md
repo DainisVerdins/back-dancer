@@ -12,16 +12,18 @@ FE part of the project [could be found here](https://github.com/DainVerd/animal-
 
 This section is dedicated for storing information about how to launch project for development.
 
-1. clone the repository
-2. open project in visual studio
-3. Select Web.api as start project
-4. Apply DB migrations by exe command in package manager console
+0. Download docker desktop. You could [get it from here](https://www.docker.com/products/docker-desktop/)
+1. launch docker compose file of the project to install postgre sql container to the docker desktop.
+2. clone the repository
+3. open project in visual studio
+4. Select Web.api as start project
+5. Apply DB migrations by exe command in package manager console
 
     ```bash
     dotnet ef database update --project Infrastructure --startup-project Backend
     ```
 
-5. launch project by pressing `Ctrl + F5`
+6. launch project by pressing `Ctrl + F5`
 
 ## Project Architecture
 
@@ -50,7 +52,7 @@ CleanArchitecture.Api serves as the entry point for the Web API application. It 
 - ASP.NET(web.api)
 - C#
 - EF Core
-- SQLite as DB
+- PostgreSQL as docker container
 
 Unit tests:
 
