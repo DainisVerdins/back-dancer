@@ -16,4 +16,5 @@ public class DataContext : IdentityDbContext<User, Role, int>
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Animal> Animals { get; set; }
     public DbSet<AnimalImage> AnimalImages { get; set; }
+    public DbSet<UserInvite> UserInvites { get; set; }
 }
