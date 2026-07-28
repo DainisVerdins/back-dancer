@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Persistance\Identity\**" />
+    <EmbeddedResource Remove="Persistance\Identity\**" />
+    <None Remove="Persistance\Identity\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.4.10" />
     <PackageReference Include="AWSSDK.S3" Version="4.0.25.2" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.10" />
@@ -27,7 +33,6 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
-    <Folder Include="Persistance\Identity\Constants\" />
   </ItemGroup>
 
 </Project>
