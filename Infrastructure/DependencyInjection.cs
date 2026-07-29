@@ -65,6 +65,7 @@ public static class DependencyInjection
         services.AddScoped<ITokenHasherService, TokenHasherService>();
 
         services.Configure<SendGridSettings>(configuration.GetSection(SendGridSettings.SectionName));
+        services.AddScoped<IEmailService, SendGridEmailService>();
 
         return services;
     }
