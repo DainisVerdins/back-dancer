@@ -62,6 +62,7 @@ public static class DependencyInjection
         services.AddScoped<IFileStorageService, S3FileStorageService>();
 
         services.AddScoped<IAnimalService, AnimalService>();
+        services.AddScoped<ITokenHasherService, TokenHasherService>();
 
         return services;
     }
