@@ -64,6 +64,8 @@ public static class DependencyInjection
         services.AddScoped<IAnimalService, AnimalService>();
         services.AddScoped<ITokenHasherService, TokenHasherService>();
 
+        services.Configure<SendGridSettings>(configuration.GetSection(SendGridSettings.SectionName));
+
         return services;
     }
 }
