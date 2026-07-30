@@ -3,6 +3,7 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Application.Interfaces;
 using Application.Interfaces.Services;
+using Application.Settings;
 using Domain.Models;
 using Infrastructure.Persistance.Data;
 using Infrastructure.Persistance.UnitOfWork;
@@ -13,7 +14,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SendGrid;
-using System.Runtime;
 
 namespace Infrastructure;
 
@@ -58,7 +58,7 @@ public static class DependencyInjection
             Credentials = new BasicAWSCredentials(
                 configuration["S3Settings:AccessKey"],
                 configuration["S3Settings:SecretKey"]),
-                    Region = Amazon.RegionEndpoint.GetBySystemName(
+            Region = Amazon.RegionEndpoint.GetBySystemName(
                 configuration["S3Settings:Region"])
         });
         services.AddScoped<IFileStorageService, S3FileStorageService>();
@@ -74,6 +74,7 @@ public static class DependencyInjection
         services.Configure<SendGridSettings>(configuration.GetSection(SendGridSettings.SectionName));
         services.AddScoped<IEmailService, SendGridEmailService>();
 
+        services.Configure<DomainSettings>(configuration.GetSection("DomainSettings"));
 
         return services;
     }

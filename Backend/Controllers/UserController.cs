@@ -1,12 +1,17 @@
-﻿using Asp.Versioning;
+﻿using Application.Constants;
+using Application.CORS.Commands;
+using Application.Exceptions;
+using Application.ViewModels.User;
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace WebApi.Controllers;
 
 [ApiController]
-[Route("api/v{version:apiVersion}/user")]
+[Route("api/v{version:apiVersion}/users")]
 [ApiVersion("1.0")]
 [Authorize]
 public class UserController : Controller
@@ -18,51 +23,36 @@ public class UserController : Controller
         _mediator = mediator;
     }
 
-    //[HttpPost]
-    //[AllowAnonymous]
-    //[Route("recover-password")]
-    //[ProducesResponseType(typeof(BaseResponse<Unit>), StatusCodes.Status200OK)]
-    //[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    //[EnableRateLimiting("FixedPolicy")]
-    //public async Task<IActionResult> RecoverPassword([FromBody] RecoverPasswordViewModel model, CancellationToken cancellationToken)
-    //{
-    //    var response = await _mediator.Send(new RecoverUserPasswordCommand { Model = model }, cancellationToken);
+    [HttpPost("invites")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [Authorize(Roles = $"{UserRole.SuperAdmin}, {UserRole.Admin}")]
+    public async Task<IActionResult> SendInvite(
+    [FromBody] SendInviteViewModel model,
+    CancellationToken cancellationToken = default)
+    {
+        var userIdClaim = User.FindFirstValue(CustomClaimType.UserId);
 
-    //    return StatusCode((int)response.StatusCode, response);
-    //}
+        if (string.IsNullOrWhiteSpace(userIdClaim))
+            throw new UnauthorizedException(
+                "Claims does not contain userId.");
 
-    //[AllowAnonymous]
-    //[HttpPost("confirm-password")]
-    //[ProducesResponseType(typeof(BaseResponse<Unit>), StatusCodes.Status200OK)]
-    //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-    //[ProducesResponseType(StatusCodes.Status404NotFound)]
-    //[EnableRateLimiting("FixedPolicy")]
-    //public async Task<IActionResult> ConfirmPasswordChange([FromBody] ConfirmPasswordChangeModel model, CancellationToken cancellationToken)
-    //{
-    //    var response = await _mediator.Send(new ConfirmUserPasswordChangeCommand { Model = model }, cancellationToken);
+        if (!int.TryParse(userIdClaim, out var invitedByUserId))
+            throw new UnauthorizedException(
+                "Invalid userId claim.");
 
-    //    return StatusCode((int)response.StatusCode, response);
-    //}
+        var inviteId = await _mediator.Send(
+            new SendInviteCommand
+            {
+                Email = model.Email,
+                Roles = model.Roles,
+                InvitedByUserId = invitedByUserId
+            },
+            cancellationToken);
 
-    //[HttpPost("change-password")]
-    //[ProducesResponseType(typeof(BaseResponse<Unit>), StatusCodes.Status200OK)]
-    //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-    //[ProducesResponseType(StatusCodes.Status404NotFound)]
-    //public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel model, CancellationToken cancellationToken)
-    //{
-    //    var response = await _mediator.Send(new ChangeUserPasswordCommand { Model = model }, cancellationToken);
-
-    //    return StatusCode((int)response.StatusCode, response);
-    //}
-
-    //[HttpGet("{userId:guid}")]
-    //[ProducesResponseType(typeof(BaseResponse<UserDto>), StatusCodes.Status200OK)]
-    //[ProducesResponseType(StatusCodes.Status410Gone)]
-    //[Authorize(Roles = UserRole.Admin)]
-    //public async Task<IActionResult> GetUserById([FromRoute] Guid userId, CancellationToken cancellationToken)
-    //{
-    //    var response = await _mediator.Send(new GetUserByIdQuery { UserId = userId }, cancellationToken);
-
-    //    return StatusCode((int)response.StatusCode, response);
-    //}
+        return StatusCode(
+            StatusCodes.Status201Created,
+            inviteId);
+    }
 }

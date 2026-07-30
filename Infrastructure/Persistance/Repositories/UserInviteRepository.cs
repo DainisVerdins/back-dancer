@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces.Repositories;
+using Domain.Enums;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,5 +9,19 @@ public class UserInviteRepository : GenericRepository<UserInvite>, IUserInviteRe
 {
     public UserInviteRepository(DbContext context) : base(context)
     {
+    }
+
+    public async Task<UserInvite?> GetPendingByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(email))
+            throw new ArgumentNullException(nameof(email));
+
+        return await _dbSet
+            .FirstOrDefaultAsync(
+                x =>
+                    x.Email == email &&
+                    x.Status == InviteStatus.Pending &&
+                    x.ExpiresAt > DateTimeOffset.UtcNow,
+                cancellationToken);
     }
 }
