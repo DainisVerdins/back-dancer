@@ -12,12 +12,12 @@ public class SendGridEmailService : IEmailService
 {
 
     private readonly SendGridSettings _settings;
-    private readonly SendGridClient _client;
+    private readonly ISendGridClient _client;
     private readonly EmailAddress _from;
-    public SendGridEmailService(IOptions<SendGridSettings> option)
+    public SendGridEmailService(ISendGridClient client, IOptions<SendGridSettings> option)
     {
         _settings = option.Value;
-        _client = new SendGridClient(_settings.ApiKey);
+        _client = client;
         _from = new EmailAddress(_settings.FromEmail, _settings.FromName);
     }
 

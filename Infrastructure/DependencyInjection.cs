@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SendGrid;
+using System.Runtime;
 
 namespace Infrastructure;
 
@@ -64,8 +66,14 @@ public static class DependencyInjection
         services.AddScoped<IAnimalService, AnimalService>();
         services.AddScoped<ITokenHasherService, TokenHasherService>();
 
+        var sendGridApiKey = configuration["SendGridSettings:ApiKey"];
+        if (string.IsNullOrEmpty(sendGridApiKey))
+            throw new ArgumentException(nameof(sendGridApiKey));
+
+        services.AddSingleton<ISendGridClient>(sp => new SendGridClient(sendGridApiKey));
         services.Configure<SendGridSettings>(configuration.GetSection(SendGridSettings.SectionName));
         services.AddScoped<IEmailService, SendGridEmailService>();
+
 
         return services;
     }
