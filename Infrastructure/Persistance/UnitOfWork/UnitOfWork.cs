@@ -2,6 +2,7 @@
 using Application.Interfaces.Repositories;
 using Infrastructure.Persistance.Data;
 using Infrastructure.Persistance.Repositories;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Persistance.UnitOfWork;
 
@@ -30,6 +31,13 @@ public class UnitOfWork : IUnitOfWork
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return _context.Database.BeginTransactionAsync(
+            cancellationToken);
     }
 
     public void Dispose()

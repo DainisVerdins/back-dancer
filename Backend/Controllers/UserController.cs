@@ -1,5 +1,6 @@
 ﻿using Application.Constants;
 using Application.CORS.Commands;
+using Application.Dtos;
 using Application.Exceptions;
 using Application.ViewModels.User;
 using Asp.Versioning;
@@ -13,7 +14,7 @@ namespace WebApi.Controllers;
 [ApiController]
 [Route("api/v{version:apiVersion}/users")]
 [ApiVersion("1.0")]
-[Authorize]
+//[Authorize]
 public class UserController : Controller
 {
     private readonly IMediator _mediator;
@@ -27,7 +28,7 @@ public class UserController : Controller
     [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    [Authorize(Roles = $"{UserRole.SuperAdmin}, {UserRole.Admin}")]
+   // [Authorize(Roles = $"{UserRole.SuperAdmin}, {UserRole.Admin}")]
     public async Task<IActionResult> SendInvite(
     [FromBody] SendInviteViewModel model,
     CancellationToken cancellationToken = default)
@@ -54,5 +55,17 @@ public class UserController : Controller
         return StatusCode(
             StatusCodes.Status201Created,
             inviteId);
+    }
+
+    [HttpPost("invites/accept")]
+    [ProducesResponseType(typeof(SignInResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> AcceptInvite(
+    [FromBody] AcceptInviteCommand command)
+    {
+        var result = await _mediator.Send(command);
+
+        return Ok(result);
     }
 }
