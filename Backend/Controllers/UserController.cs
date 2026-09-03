@@ -14,7 +14,7 @@ namespace WebApi.Controllers;
 [ApiController]
 [Route("api/v{version:apiVersion}/users")]
 [ApiVersion("1.0")]
-//[Authorize]
+[Authorize]
 public class UserController : Controller
 {
     private readonly IMediator _mediator;
@@ -28,7 +28,7 @@ public class UserController : Controller
     [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-   // [Authorize(Roles = $"{UserRole.SuperAdmin}, {UserRole.Admin}")]
+    [Authorize(Roles = $"{UserRole.SuperAdmin}, {UserRole.Admin}")]
     public async Task<IActionResult> SendInvite(
     [FromBody] SendInviteViewModel model,
     CancellationToken cancellationToken = default)
