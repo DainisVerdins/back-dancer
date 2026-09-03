@@ -62,33 +62,91 @@ public class UserServiceTests
     }
 
     #endregion
-
     #region CreateUserAsync Tests
 
-    [Fact]
-    public async Task CreateUserAsync_WhenUserAlreadyExists_ShouldReturnTrueImmediately()
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public async Task CreateUserAsync_WhenPasswordIsNullOrEmpty_ShouldThrowArgumentException(
+        string? password)
     {
-        var user = new User { UserName = "ExistingUser" };
-        _userManagerMock.Setup(x => x.FindByNameAsync("ExistingUser"))
-            .ReturnsAsync(user);
+        var user = new User
+        {
+            UserName = "TestUser"
+        };
 
-        var result = await _sut.CreateUserAsync(user, "Password123!");
+        var act = async () =>
+            await _sut.CreateUserAsync(user, password!);
 
-        result.Should().BeTrue();
-        _userManagerMock.Verify(x => x.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+        await act.Should().ThrowAsync<ArgumentException>();
     }
 
     [Fact]
-    public async Task CreateUserAsync_WhenUserDoesNotExist_ShouldCreateAndReturnStatus()
+    public async Task CreateUserAsync_WhenUserIsNull_ShouldThrowArgumentNullException()
     {
-        var user = new User { UserName = "NewUser" };
-        _userManagerMock.Setup(x => x.FindByNameAsync("NewUser")).ReturnsAsync((User?)null);
-        _userManagerMock.Setup(x => x.CreateAsync(user, "Password123!"))
+        var act = async () =>
+            await _sut.CreateUserAsync(null!, "Password123!");
+
+        await act.Should().ThrowAsync<ArgumentNullException>();
+    }
+
+    [Fact]
+    public async Task CreateUserAsync_WhenUserCreationSucceeds_ShouldReturnSuccess()
+    {
+        var user = new User
+        {
+            UserName = "NewUser"
+        };
+
+        _userManagerMock
+            .Setup(x => x.CreateAsync(user, "Password123!"))
             .ReturnsAsync(IdentityResult.Success);
 
-        var result = await _sut.CreateUserAsync(user, "Password123!");
+        var result = await _sut.CreateUserAsync(
+            user,
+            "Password123!");
 
-        result.Should().BeTrue();
+        result.Should().NotBeNull();
+        result.Succeeded.Should().BeTrue();
+
+        _userManagerMock.Verify(
+            x => x.CreateAsync(user, "Password123!"),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateUserAsync_WhenUserCreationFails_ShouldReturnFailedResult()
+    {
+        var user = new User
+        {
+            UserName = "NewUser"
+        };
+
+        var identityError = new IdentityError
+        {
+            Code = "DuplicateUserName",
+            Description = "Username already exists."
+        };
+
+        _userManagerMock
+            .Setup(x => x.CreateAsync(user, "Password123!"))
+            .ReturnsAsync(
+                IdentityResult.Failed(identityError));
+
+        var result = await _sut.CreateUserAsync(
+            user,
+            "Password123!");
+
+        result.Should().NotBeNull();
+        result.Succeeded.Should().BeFalse();
+        result.Errors.Should().ContainSingle();
+
+        result.Errors.First().Description
+            .Should().Be("Username already exists.");
+
+        _userManagerMock.Verify(
+            x => x.CreateAsync(user, "Password123!"),
+            Times.Once);
     }
 
     #endregion
