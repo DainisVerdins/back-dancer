@@ -24,4 +24,12 @@ public class UserInviteRepository : GenericRepository<UserInvite>, IUserInviteRe
                     x.ExpiresAt > DateTimeOffset.UtcNow,
                 cancellationToken);
     }
+
+    public async Task<UserInvite?> GetByTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+        .FirstOrDefaultAsync(
+            x => x.Token == tokenHash,
+            cancellationToken);
+    }
 }

@@ -11,7 +11,7 @@ public interface IUserService
     Task<User?> GetUserByIdAsync(int id);
     Task<bool> UserExistsAsync(string userName);
     Task<User?> GetUserByUserNameAsync(string userName);
-    Task<bool> CreateUserAsync(User userToCreate, string password);
+    Task<IdentityResult> CreateUserAsync(User userToCreate, string password);
     Task<IList<Claim>> GetUserClaims(User user);
     Task<IdentityResult> AddRoleToUserByRoleNameAsync(User user, string roleName);
     Task<IList<Claim>> GetClaimsForAccessTokenByUserIdAsync(int userId, string? roleName = null);
