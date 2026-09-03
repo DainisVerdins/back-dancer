@@ -70,9 +70,7 @@ public class AcceptInviteCommandHandler
             throw new ConflictException(
                 $"User with email '{invite.Email}' already exists.");
 
-        await using var transaction =
-            await _unitOfWork.BeginTransactionAsync(
-                cancellationToken);
+        await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
         try
         {
@@ -115,15 +113,12 @@ public class AcceptInviteCommandHandler
 
             invite.Status = InviteStatus.Accepted;
 
-            await _unitOfWork.SaveChangesAsync(
-                cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await transaction.CommitAsync(
-                cancellationToken);
+            await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
             var claims =
-                await _userService
-                    .GetClaimsForAccessTokenByUserIdAsync(user.Id);
+                await _userService.GetClaimsForAccessTokenByUserIdAsync(user.Id);
 
             var tokenResponse =
                 _jwtTokenService.GenerateAccessToken(claims);
@@ -136,7 +131,7 @@ public class AcceptInviteCommandHandler
         }
         catch
         {
-            await transaction.RollbackAsync(
+            await _unitOfWork.RollbackTransactionAsync(
                 CancellationToken.None);
 
             throw;
