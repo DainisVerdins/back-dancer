@@ -1,5 +1,6 @@
 ﻿using Application.Constants;
 using Application.CORS.Commands;
+using Application.Dtos;
 using Application.Exceptions;
 using Application.ViewModels.User;
 using Asp.Versioning;
@@ -54,5 +55,17 @@ public class UserController : Controller
         return StatusCode(
             StatusCodes.Status201Created,
             inviteId);
+    }
+
+    [HttpPost("invites/accept")]
+    [ProducesResponseType(typeof(SignInResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> AcceptInvite(
+    [FromBody] AcceptInviteCommand command)
+    {
+        var result = await _mediator.Send(command);
+
+        return Ok(result);
     }
 }

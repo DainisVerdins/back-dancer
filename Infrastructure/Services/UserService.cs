@@ -33,20 +33,16 @@ public class UserService : IUserService
         return await _userManager.CheckPasswordAsync(user, password);
     }
 
-    public async Task<bool> CreateUserAsync(User userToCreate, string password)
+    public async Task<IdentityResult> CreateUserAsync(User userToCreate, string password)
     {
         if (string.IsNullOrEmpty(password))
             throw new ArgumentException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
-
-        if (await _userManager.FindByNameAsync(userToCreate?.UserName ?? "") != null)
-            return true;
-
-
         if (userToCreate is null)
             throw new ArgumentNullException(ErrorMessages.GetMessage(ErrorCode.ArgumentIsEmpty));
-        var result = await _userManager.CreateAsync(userToCreate, password);
-
-        return result.Succeeded == true;
+        
+        return await _userManager.CreateAsync(
+       userToCreate,
+       password);
     }
 
     public async Task<User?> GetUserByEmailAsync(string email)

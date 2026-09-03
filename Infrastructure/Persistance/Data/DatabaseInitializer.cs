@@ -58,14 +58,16 @@ public class DatabaseInitializer
                 RequirePasswordChange = true
             };
 
-            var isOk = await _userService.CreateUserAsync(initialAdmin, _initialUserSettings.Password);
+            var result = await _userService.CreateUserAsync(initialAdmin, _initialUserSettings.Password);
+
+            if (!result.Succeeded)
+                throw new Exception($"Failed to init user: {string.Join(",",result.Errors.Select(e =>e.Description))}");
+
             await _unitOfWork.SaveChangesAsync();
 
-            if (isOk)
-            {
-                await _userService.AddRoleToUserByRoleNameAsync(initialAdmin, UserRole.SuperAdmin);
-                await _userService.AddRoleToUserByRoleNameAsync(initialAdmin, UserRole.User);
-            }
+            await _userService.AddRoleToUserByRoleNameAsync(initialAdmin, UserRole.SuperAdmin);
+            await _userService.AddRoleToUserByRoleNameAsync(initialAdmin, UserRole.User);
+
         }
     }
 }
